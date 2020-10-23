@@ -21,6 +21,6 @@
  - `expansion` - If there is an expansion pack - name of expansion
  - `family` - Family of game - equivalent to a publisher
  - `mechanic` - Game mechanic - how game is played, separated by comma
- - `publisher` - Comoany/person who published the game, separated by comma
+ - `publisher` - Company/person who published the game, separated by comma
  - `average_rating` - Average rating on Board Games Geek (1-10)
  - `users_rated` - Number of users that rated the game
