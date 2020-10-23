@@ -29,9 +29,7 @@ Our presentation can be found [here](presentation/presentation.html).
 
 ## Data 
 
-Include a citation for your data here. 
-See http://libraryguides.vu.edu.au/c.php?g=386501&p=4347840 for guidance on proper citation for datasets. 
-If you got your data off the web, make sure to note the retrieval date.
+Board Game Geek 2019, Board Games Database, electronic dataset, Tidy Tuesdays, viewed 23 October 2020, <https://github.com/rfordatascience/tidytuesday/tree/master/data/2019/2019-03-12>.
 
 ## References
 
