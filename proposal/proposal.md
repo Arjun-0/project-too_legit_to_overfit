@@ -6,10 +6,11 @@ Too Legit to Overfit
 library(tidyverse)
 library(broom)
 library(pander)
+library(here)
 ```
 
 ``` r
-board_games <- read_csv("../data/board_games.csv")
+board_games <- read_csv(here("data/board_games.csv"))
 ```
 
 ## 1\. Introduction
@@ -59,8 +60,10 @@ We will try to look for correlations between category and popularity,
 number of ratings, and playtime. The most common categories are
 
 ``` r
-popular_categories <- board_games %>%
-  mutate(categories = str_split(category, ",")) %>%
+board_games_splitcats <- board_games %>% 
+  mutate(categories = str_split(category, ","))
+
+popular_categories <- board_games_splitcats %>%
   pull(categories) %>%
   unlist %>%
   as_tibble %>%
@@ -80,3 +83,26 @@ popular_categories %>%
 |    Fighting     | 900  |
 |    Economic     | 878  |
 | Science Fiction | 850  |
+
+``` r
+popular_categories <- pull(popular_categories, value)
+```
+
+``` r
+list_intersect <- function(a, b) {
+  do_intersect = FALSE
+  for (value in a) {
+    if (value %in% b) {
+      do_intersect = TRUE
+    }
+  }
+  do_intersect
+}
+
+rows = c()
+for (row in 1:nrow(board_games_splitcats)) {
+  if (list_intersect(board_games_splitcats[row, "categories"], popular_categories)) {
+    rows <- append(rows, row)
+  }
+}
+```
