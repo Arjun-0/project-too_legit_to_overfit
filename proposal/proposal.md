@@ -101,8 +101,19 @@ list_intersect <- function(a, b) {
 
 rows = c()
 for (row in 1:nrow(board_games_splitcats)) {
-  if (list_intersect(board_games_splitcats[row, "categories"], popular_categories)) {
-    rows <- append(rows, row)
+  game_categories <- unlist(board_games_splitcats$categories[row])
+  if (list_intersect(game_categories, popular_categories)) {
+    rows <- append(rows, board_games_splitcats$game_id[row])
   }
 }
+
+board_games_topcats <- board_games_splitcats %>% 
+  filter(game_id %in% rows) 
+```
+
+``` r
+board_games_topcats <- board_games_splitcats %>% 
+  filter(map_lgl(categories, ~any(popular_categories %in% .x)))
+
+# Note this df has same name as above df because is exactly same df. Should choose preferred method and get rid of other.
 ```
