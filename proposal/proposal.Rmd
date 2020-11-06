@@ -82,4 +82,36 @@ board_games_topcats <- board_games_splitcats %>%
 # Note this df has same name as above df because is exactly same df. Should choose preferred method and get rid of other.
 ```
 
+We can investigate the changes in quality of different categories of games. For example, investigating how the quality of board games in the six most common categories changes over time. As a measure of quality, we use the mean rating given to a game in that category (that is, the sum of all ratings in a category (in a given year) divided by the total number of such ratings). 
 
+```{r top-cats-over-time, message = FALSE, warning = FALSE}
+av_annual_rating <- function(cat) {
+  board_games_topcats %>%
+  filter(map_lgl(categories, ~cat %in% .x)) %>% 
+  group_by(year_published) %>% 
+  summarise(av_annual_rating = sum(average_rating * users_rated) / sum(users_rated))
+}
+
+cats <- map(popular_categories, av_annual_rating)
+
+cat_ratings <- reduce(cats, ~full_join(.x,.y, by = "year_published")) %>% 
+  arrange(year_published)
+
+names(cat_ratings) <- c("year_published", popular_categories)
+
+cat_ratings %>% 
+  pivot_longer(cols = 2:ncol(cat_ratings), names_to = "category", values_to = "av_rating") %>% 
+  ggplot(aes(x = year_published, y = av_rating, colour = category)) + 
+  geom_line() + 
+  labs(
+    x = "Year", 
+    y = "Mean annual category rating", 
+    colour = "Category", 
+    title = "Change in average ratings of the 6 most popular game categories"
+  ) + 
+  scale_color_brewer(palette = "BrBG") + 
+  theme_minimal()
+  
+```
+
+This plot indicates a fairly strong association between mean ratings (of games in the six most popular categories) and time. That is, more recent games (regardless of category) are rated more highly on average than older games. We can investigate further whether this is something universal across all categories, and whether any other variables such as changes in playtime or game mechanics, for example, could be an influence. This will require producing similar plots to investigate relationships of variables over time, as well as calculating statistics such as correlation coefficients to investigate relationships between variables.  
