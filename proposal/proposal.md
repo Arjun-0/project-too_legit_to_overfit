@@ -126,14 +126,14 @@ sum of all ratings in a category (in a given year) divided by the total
 number of such ratings).
 
 ``` r
-av_annual_rating <- function(cat) {
-  board_games_topcats %>%
+av_annual_rating <- function(df, cat) { # finds average rating of a category (cat) of board game in dataframe given (df) for each year in which a board game of that category was published. Output is a dataframe. df must have columns `year published`, `categories` (a `list` of categories), `average_rating` and `year_published`
+  df %>%
   filter(map_lgl(categories, ~cat %in% .x)) %>% 
   group_by(year_published) %>% 
   summarise(av_annual_rating = sum(average_rating * users_rated) / sum(users_rated))
 }
 
-cats <- map(popular_categories, av_annual_rating)
+cats <- map(popular_categories, ~av_annual_rating(df = board_games_topcats, cat = .))
 
 cat_ratings <- reduce(cats, ~full_join(.x,.y, by = "year_published")) %>% 
   arrange(year_published)
@@ -150,7 +150,7 @@ cat_ratings %>%
     colour = "Category", 
     title = "Change in average ratings of the 6 most popular game categories"
   ) + 
-  scale_color_brewer(palette = "BrBG") + 
+  scale_color_viridis_d() +
   theme_minimal()
 ```
 

@@ -85,14 +85,14 @@ board_games_topcats <- board_games_splitcats %>%
 We can investigate the changes in quality of different categories of games. For example, investigating how the quality of board games in the six most common categories changes over time. As a measure of quality, we use the mean rating given to a game in that category (that is, the sum of all ratings in a category (in a given year) divided by the total number of such ratings). 
 
 ```{r top-cats-over-time, message = FALSE, warning = FALSE}
-av_annual_rating <- function(cat) {
-  board_games_topcats %>%
+av_annual_rating <- function(df, cat) { # finds average rating of a category (cat) of board game in dataframe given (df) for each year in which a board game of that category was published. Output is a dataframe. df must have columns `year published`, `categories` (a `list` of categories), `average_rating` and `year_published`
+  df %>%
   filter(map_lgl(categories, ~cat %in% .x)) %>% 
   group_by(year_published) %>% 
   summarise(av_annual_rating = sum(average_rating * users_rated) / sum(users_rated))
 }
 
-cats <- map(popular_categories, av_annual_rating)
+cats <- map(popular_categories, ~av_annual_rating(df = board_games_topcats, cat = .))
 
 cat_ratings <- reduce(cats, ~full_join(.x,.y, by = "year_published")) %>% 
   arrange(year_published)
@@ -109,9 +109,8 @@ cat_ratings %>%
     colour = "Category", 
     title = "Change in average ratings of the 6 most popular game categories"
   ) + 
-  scale_color_brewer(palette = "BrBG") + 
+  scale_color_viridis_d() +
   theme_minimal()
-  
 ```
 
 This plot indicates a fairly strong association between mean ratings (of games in the six most popular categories) and time. That is, more recent games (regardless of category) are rated more highly on average than older games. We can investigate further whether this is something universal across all categories, and whether any other variables such as changes in playtime or game mechanics, for example, could be an influence. This will require producing similar plots to investigate relationships of variables over time, as well as calculating statistics such as correlation coefficients to investigate relationships between variables.  
