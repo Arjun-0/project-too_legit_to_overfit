@@ -19,7 +19,7 @@ The dataset we are looking at is a collection of board games from Board
 Game Geeks, which is a crowd-sourced board game review platform. The
 variables in the dataset are:
 
-We would like to use this dataset to analyse the differences between
+We would like to use this dataset to analyze the differences between
 different categories of board game, in terms of playtime, popularity,
 and ratings.
 
@@ -57,7 +57,7 @@ glimpse(board_games)
 ## 3\. Data analysis plan
 
 We will try to look for correlations between category and popularity,
-number of ratings, and playtime. The most common categories are
+number of ratings, and playtime. The most common categories are:
 
 ``` r
 board_games_splitcats <- board_games %>% 
