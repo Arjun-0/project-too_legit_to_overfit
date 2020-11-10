@@ -126,35 +126,45 @@ sum of all ratings in a category (in a given year) divided by the total
 number of such ratings).
 
 ``` r
-av_annual_rating <- function(df, cat) { # finds average rating of a category (cat) of board game in dataframe given (df) for each year in which a board game of that category was published. Output is a dataframe. df must have columns `year published`, `categories` (a `list` of categories), `average_rating` and `year_published`
-  df %>%
-  filter(map_lgl(categories, ~cat %in% .x)) %>% 
+av_annual_rating <- function(df, cat = NULL) {
+  {if(!is.null(cat)) {
+    df %>% filter(map_lgl(categories, ~cat %in% .x))
+  } else {
+    df
+  }} %>% 
   group_by(year_published) %>% 
   summarise(av_annual_rating = sum(average_rating * users_rated) / sum(users_rated))
 }
+# finds average rating (of a category (cat) if given) of board games in dataframe given (df) for each year in which a board game of that category was published. Output is a dataframe. df must have columns `year published`, `categories` (a `list` of categories), `average_rating` and `year_published`. 
 
 cats <- map(popular_categories, ~av_annual_rating(df = board_games_topcats, cat = .))
 
 cat_ratings <- reduce(cats, ~full_join(.x,.y, by = "year_published")) %>% 
   arrange(year_published)
 
-names(cat_ratings) <- c("year_published", popular_categories)
+if(any(is.na(popular_categories))) {
+  popular_categories[[which(is.na(popular_categories))]] <- "not_categorised"
+} 
 
+names(cat_ratings) <- c("year_published", popular_categories)
+```
+
+``` r
 cat_ratings %>% 
   pivot_longer(cols = 2:ncol(cat_ratings), names_to = "category", values_to = "av_rating") %>% 
   ggplot(aes(x = year_published, y = av_rating, colour = category)) + 
   geom_line() + 
   labs(
-    x = "Year", 
+    x = "Year published", 
     y = "Mean annual category rating", 
     colour = "Category", 
-    title = "Change in average ratings of the 6 most popular game categories"
+    title = "Average ratings of the 6 most popular game categories by year published"
   ) + 
   scale_color_viridis_d() +
   theme_minimal()
 ```
 
-![](proposal_files/figure-gfm/top-cats-over-time-1.png)<!-- -->
+![](proposal_files/figure-gfm/top-cats-over-time-plot-1.png)<!-- -->
 
 This plot indicates a fairly strong association between mean ratings (of
 games in the six most popular categories) and time. That is, more recent
@@ -166,3 +176,22 @@ influence. This will require producing similar plots to investigate
 relationships of variables over time, as well as calculating statistics
 such as correlation coefficients to investigate relationships between
 variables.
+
+``` r
+board_games_splitcats %>% 
+  av_annual_rating() %>% 
+  ggplot(aes(x = year_published, y = av_annual_rating)) +
+  geom_line() +
+  labs(
+    x = "Year published",
+    y = "Mean annual rating",
+    title = "Average ratings of board games by year published"
+  ) +
+  scale_color_viridis_d() +
+  theme_minimal()
+```
+
+![](proposal_files/figure-gfm/total-ratings-over-time-1.png)<!-- -->
+
+Indeed the overall trend for board game ratings has been an increase in
+ratings for more recently published games.
