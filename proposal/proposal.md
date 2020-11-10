@@ -151,10 +151,7 @@ games (regardless of category) are rated more highly on average than
 older games. We can investigate further whether this is something
 universal across all categories, and whether any other variables such as
 changes in playtime or game mechanics, for example, could be an
-influence. This will require producing similar plots to investigate
-relationships of variables over time, as well as calculating statistics
-such as correlation coefficients to investigate relationships between
-variables.
+influence.
 
 ``` r
 board_games_splitcats %>% 
@@ -198,11 +195,9 @@ ggplot() +
 ![](proposal_files/figure-gfm/rating-v-playtime-1.png)<!-- -->
 
 As seen in the boxplots, games that are more highly rated tend to have a
-longer playing time. We hope to investigate how different factors affect
-how highly a game is rated and use this to predict the rating of a board
-game.
+longer playing time.
 
-Plotting the number of ratings against the average rating of each game
+Plotting the number of ratings against the average rating of each game:
 
 ``` r
 board_games_splitcats %>%
@@ -217,15 +212,25 @@ board_games_splitcats %>%
 
 ![](proposal_files/figure-gfm/no_ratings-v-rating-1.png)<!-- -->
 
-Here we can see that the plot has a modal value just less than 7.5, this
-may be due to the fact that this is the average rating for all games
-rather than the number of ratings affecting this value whatsoever. In
-our actual analysis we will need to find a way to avoid this issue and
-properly visualize the relationship between the two variables.
+This plot suggests that games with more ratings tend to have an average
+rating closer to just under 7.5. However, this may be because there are
+more games with a rating of 7.5, which increases the likelihood that
+there will be a game with particularly a large number of ratings. To
+analyze this further, we will need to eliminate the effect of this
+confounding variable (number of games with a given rating) to properly
+analyze the relationship between the two variables.
 
 Hypothesis:
 
 Category has an effect on the average rating, the year published and the
-playing time have a positive association with the average rating and as
+playing time have a positive association with the average rating, and as
 the number of individual ratings rises the average rating tends towards
 7.5.
+
+In order to reach our conclusions we will need to model each individual
+variable against the average rating and use statistical tests such as
+the chi-squared test to evaluate the fit of each model. We will also use
+correlation coefficient tests to investigate the strength of linear
+relationships. We will use modeling to eliminate the influence of the
+distribution of the average ratings on our graph plotting the number of
+ratings against the average ratings.
