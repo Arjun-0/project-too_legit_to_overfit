@@ -89,33 +89,8 @@ popular_categories <- pull(popular_categories, value)
 ```
 
 ``` r
-list_intersect <- function(a, b) {
-  do_intersect = FALSE
-  for (value in a) {
-    if (value %in% b) {
-      do_intersect = TRUE
-    }
-  }
-  do_intersect
-}
-
-rows = c()
-for (row in 1:nrow(board_games_splitcats)) {
-  game_categories <- unlist(board_games_splitcats$categories[row])
-  if (list_intersect(game_categories, popular_categories)) {
-    rows <- append(rows, board_games_splitcats$game_id[row])
-  }
-}
-
-board_games_topcats <- board_games_splitcats %>% 
-  filter(game_id %in% rows) 
-```
-
-``` r
 board_games_topcats <- board_games_splitcats %>% 
   filter(map_lgl(categories, ~any(popular_categories %in% .x)))
-
-# Note this df has same name as above df because is exactly same df. Should choose preferred method and get rid of other.
 ```
 
 We can investigate the changes in quality of different categories of
@@ -195,3 +170,30 @@ board_games_splitcats %>%
 
 Indeed the overall trend for board game ratings has been an increase in
 ratings for more recently published games.
+
+``` r
+board_games_splitcats %>% 
+  mutate(
+    top_games = if_else(
+      rank(desc(board_games_splitcats$average_rating))<=100, 
+      "In top 100", 
+      "Not in top 100"
+    )
+  ) %>% 
+ggplot() + 
+  geom_boxplot(mapping = aes(playing_time, top_games)) + 
+  xlim(NA, 200) + 
+  labs(
+    x = "Average playing time in minutes",
+    y = "Subset",
+    title = "Distribution of game playing time"
+  ) +
+  theme_minimal()
+```
+
+![](proposal_files/figure-gfm/rating-v-playtime-1.png)<!-- -->
+
+As seen in the boxplots, games that are more highly rated tend to have a
+longer playing time. We hope to investigate how different factors affect
+how highly a game is rated and use this to predict the rating of a board
+game.
