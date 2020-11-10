@@ -16,12 +16,12 @@ board_games <- read_csv(here("data/board_games.csv"))
 ## 1\. Introduction
 
 The dataset we are looking at is a collection of board games from Board
-Game Geeks, which is a crowd-sourced board game review platform. The
-variables in the dataset are:
+Game Geeks, which is a crowd-sourced board game review platform.
 
-We would like to use this dataset to analyze the differences between
-different categories of board game, in terms of playtime, popularity,
-and ratings.
+We would like to use this dataset to analyze the factors that will
+affect the rating of a board game. We will be looking at
+`year_published`, `category`, `playing_time`, and `users_rated` in
+relation to `average_rating`.
 
 ## 2\. Data
 
@@ -55,6 +55,10 @@ glimpse(board_games)
     ## $ users_rated    <dbl> 4498, 478, 12019, 314, 15195, 73, 2751, 186, 1263, 672…
 
 ## 3\. Data analysis plan
+
+Our predictor variables will be `year_published`, `category`,
+`playing_time`, and `users_rated`. Our response variable will be
+`average_rating`.
 
 We will try to look for correlations between category and popularity,
 number of ratings, and playtime. The most common categories are:
@@ -197,3 +201,31 @@ As seen in the boxplots, games that are more highly rated tend to have a
 longer playing time. We hope to investigate how different factors affect
 how highly a game is rated and use this to predict the rating of a board
 game.
+
+Plotting the number of ratings against the average rating of each game
+
+``` r
+board_games_splitcats %>%
+ ggplot() +
+ geom_point(aes(x = users_rated, y = average_rating), alpha = 0.5) +
+ labs(
+ x = "Number of ratings",
+ y = "Average ratings",
+ title = "Number of ratings against average rating"
+ )
+```
+
+![](proposal_files/figure-gfm/no_ratings-v-rating-1.png)<!-- -->
+
+Here we can see that the plot has a modal value just less than 7.5, this
+may be due to the fact that this is the average rating for all games
+rather than the number of ratings affecting this value whatsoever. In
+our actual analysis we will need to find a way to avoid this issue and
+properly visualize the relationship between the two variables.
+
+Hypothesis:
+
+Category has an effect on the average rating, the year published and the
+playing time have a positive association with the average rating and as
+the number of individual ratings rises the average rating tends towards
+7.5.
