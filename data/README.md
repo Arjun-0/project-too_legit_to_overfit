@@ -13,7 +13,7 @@ Each row in the dataset represents a board game on Board Game Geeks, and the dim
  - `min_players` - Minimum recommended players
  - `min_playtime` - Minimum recommended playtime (min)
  - `name` - Name of the game
- - `playing_time` - Average playtime
+ - `playing_time` - Average playtime (min)
  - `thumbnail` - URL thumbnail of the game
  - `year_published` - Year game was published
  - `artist` - Artist for game art
