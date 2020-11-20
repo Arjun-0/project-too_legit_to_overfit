@@ -1,6 +1,6 @@
 ---
-title: Project title
-author: by Team name
+title: How do Certain Factors Affect the Ratings of Boardgames?
+author: by Too Legit To Overfit
 output: github_document
 ---
 
