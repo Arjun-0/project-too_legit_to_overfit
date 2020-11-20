@@ -1,9 +1,6 @@
-[![Check allowed files](https://github.com/ids-s1-20/project-too_legit_to_overfit/workflows/Check%20allowed%20files/badge.svg)](https://github.com/ids-s1-20/project-too_legit_to_overfit/actions?query=workflow:%22Check%20allowed%20files%22) [![Check presentation renders](https://github.com/ids-s1-20/project-too_legit_to_overfit/workflows/Check%20presentation%20renders/badge.svg)](https://github.com/ids-s1-20/project-too_legit_to_overfit/actions?query=workflow:%22Check%20presentation%20renders%22) [![Check README renders](https://github.com/ids-s1-20/project-too_legit_to_overfit/workflows/Check%20README%20renders/badge.svg)](https://github.com/ids-s1-20/project-too_legit_to_overfit/actions?query=workflow:%22Check%20README%20renders%22)
-
-
-Project title
+How do Certain Factors Affect the Ratings of Boardgames?
 ================
-by Team name
+by Too Legit To Overfit
 
 ## Summary
 
@@ -14,8 +11,8 @@ words. To use the word count addin, select the text you want to count
 the words of (probably this is the Summary section of this document, go
 to Addins, and select the `Word count` addin). This addin counts words
 using two different algorithms, but the results should be similar and as
-long as you’re in the ballpark of 750 words, you’re good! The addin will
-ignore code chunks and only count the words in prose.
+long as you’re in the ballpark of 750 words, you’re good\! The addin
+will ignore code chunks and only count the words in prose.
 
 You can also load your data here and present any analysis results /
 plots, but I strongly urge you to keep that to a minimum (maybe only the
@@ -31,10 +28,9 @@ Our presentation can be found [here](presentation/presentation.html).
 
 ## Data
 
-Include a citation for your data here. See
-<http://libraryguides.vu.edu.au/c.php?g=386501&p=4347840> for guidance
-on proper citation for datasets. If you got your data off the web, make
-sure to note the retrieval date.
+Board Game Geek 2019, Board Games Database, electronic dataset, Tidy
+Tuesdays, viewed 23 October 2020,
+<https://github.com/rfordatascience/tidytuesday/tree/master/data/2019/2019-03-12>.
 
 ## References
 
