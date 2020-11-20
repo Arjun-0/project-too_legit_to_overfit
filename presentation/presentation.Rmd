@@ -21,6 +21,7 @@ library(tidyverse)
 library(tidymodels)
 library(palmerpenguins)
 library(knitr)
+library(here)
 ```
 
 ```{r setup, include=FALSE}
@@ -29,7 +30,7 @@ knitr::opts_chunk$set(fig.retina = 3, dpi = 300, fig.width = 6, fig.asp = 0.618,
 ```
 
 ```{r load-data, include=FALSE}
-# Load your data here
+board_games <- read_csv(here("data/board_games.csv"))
 ```
 
 
