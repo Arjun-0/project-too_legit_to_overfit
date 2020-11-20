@@ -1,5 +1,5 @@
 ---
-title: "How do Certain Factors Affect the Ratings of Boardgames"
+title: "How do Certain Factors Affect the Ratings of Boardgames?"
 subtitle: "Looking at year_published, category, playing_time, and users_rated"
 author: "Too Legit to Overfit <br> Archie Cannon, Arjun Nanning Ramamurthy, Bruce McPhail, Connor Williams"
 institute: "University of Edinburgh"
@@ -36,7 +36,7 @@ board_games <- read_csv(here("data/board_games.csv"))
 
 class: center, middle
 
-## A statement of the overall goal / research question
+## How do year_published, category, playing_time, and users_rate affect the average ratings of boardgames?
 
 ---
 
