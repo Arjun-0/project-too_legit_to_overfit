@@ -37,3 +37,24 @@ board_games %>%
     y = "Rating"
   )
 ```
+
+## Year Published vs Number of Ratings
+
+Here we can see that the number of ratings on games older than 1980 have almost no ratings in comparison to more recent games, where we see exponential growth in users rated. This shows us that more recent games are much more reviewed than those before 1980. So it is clear that not only are older games less well rated, they are also rated by fewer people.
+
+```{r year-published-users-rated, message = FALSE}
+board_games %>%
+  group_by(year_published) %>%
+  summarise(users = sum(users_rated)) %>%
+  ggplot(aes(
+    x = year_published,
+    y = users
+  )) +
+  geom_line() +
+  geom_smooth() +
+  theme_minimal() +
+  labs(
+    x = "Year Published",
+    y = "Number of Ratings"
+  )
+```
