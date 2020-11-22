@@ -202,8 +202,7 @@ Plotting the number of ratings against the average rating of each game:
 ``` r
 board_games_splitcats %>%
  ggplot() +
- geom_point(aes(x = users_rated, y = average_rating), alpha = 0.5) +
-  scale_x_log10() +
+ geom_point(aes(x = users_rated, y = average_rating), alpha = 0.5) + 
  labs(
  x = "Number of ratings",
  y = "Average ratings",
