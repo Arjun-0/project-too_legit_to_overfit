@@ -1,0 +1,39 @@
+---
+title: "Bruce's little playground"
+output:
+  html_document:
+    theme: journal
+    highlight: pygments
+---
+
+## Setup
+
+```{r load-packages, message = FALSE}
+library(tidyverse)
+library(here)
+```
+
+```{r read-data, message = FALSE}
+board_games <- read_csv(here("data/board_games.csv"))
+```
+
+## Year Published vs Rating
+
+Here we see that average ratings have an overall upwards trend, with a brief plateau from 1980 to 2000 and then a sharp rise. This seems to suggest that the preference of the Board Game Geek community is more toward more recent games than older ones, and possibly that board games fall out of favour as they age, although as we have no past ratings data there is no way to verify this.
+
+```{r year-published-rating, message = FALSE}
+board_games %>%
+  group_by(year_published) %>%
+  summarise(rating = mean(average_rating)) %>%
+  ggplot(aes(
+    x = year_published,
+    y = rating
+  )) +
+  geom_line() +
+  geom_smooth() +
+  theme_minimal() +
+  labs(
+    x = "Year Published",
+    y = "Rating"
+  )
+```
