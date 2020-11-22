@@ -58,3 +58,60 @@ board_games %>%
     y = "Number of Ratings"
   )
 ```
+
+## Most Popular Categories Over Time
+
+First, we find the most popular categories overall.
+
+```{r popular-categories}
+board_games_splitcats <- board_games %>% 
+  mutate(categories = str_split(category, ","))
+
+popular_categories <- board_games_splitcats %>%
+  pull(categories) %>%
+  unlist %>%
+  as_tibble %>%
+  count(value) %>%
+  arrange(desc(n)) %>%
+  head(6) %>%
+  pull(value)
+```
+
+Next, we find all of the games in each of these categories. We are okay with duplicate rows, as if a game is in two of the most popular categories we want it to be accounted for in both categories.
+
+```{r popular-games, message = FALSE}
+board_games_empty <- board_games_splitcats %>%
+  filter(FALSE)
+board_games_popcats <- board_games_empty
+
+for (c in popular_categories) {
+  board_games_popcats <- full_join(
+    board_games_popcats,
+    board_games_splitcats %>%
+      filter(map_lgl(categories, ~c %in% .x)) %>%
+      mutate(category = c)
+  )
+}
+```
+
+Finally, we can plot the popularity of each category over time. Popularity, here, refers to the number of board games in each category as this is analogous to popularity among board game manufacturers.
+
+```{r popular-categories-year-published, message = FALSE}
+board_games_popcats %>%
+  group_by(category, year_published) %>%
+  summarise(count = n()) %>%
+  ggplot(aes(
+    x = year_published,
+    y = count,
+    color = category
+  )) +
+  geom_line() +
+  theme_minimal() +
+  labs(
+    x = "Year Published",
+    y = "Number of Games",
+    color = "Category"
+  )
+```
+
+We can see from this graph that the overall trend in number of games is still upwards, but we see a few interesting points. For one, after about 1990 the number of card games starts to rise far above the other games in terms of popularity. This may be because with the growing popularity of the internet, it became much easier for people to make and share their own card games. Also, around 1970 the number of wargames drastically increased, becoming noticeably more popular than every other category until being overtaken by card games around 2010 and then all the other categories here more recently.
