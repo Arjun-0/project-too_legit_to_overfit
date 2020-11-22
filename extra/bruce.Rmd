@@ -1,9 +1,6 @@
 ---
 title: "Bruce's little playground"
-output:
-  html_document:
-    theme: journal
-    highlight: pygments
+output: github_document
 ---
 
 ## Setup
