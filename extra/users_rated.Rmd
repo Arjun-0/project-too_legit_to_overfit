@@ -3,5 +3,73 @@ title: "users_rated"
 author: "Arjun NR"
 date: "11/21/2020"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
+
+## Loading packages
+```{r load packages}
+library(tidyverse)
+library(broom)
+library(pander)
+library(here)
+```
+
+## Relevant work from proposal
+```{r load-data, message = FALSE}
+board_games <- read_csv(here("data/board_games.csv"))
+```
+
+```{r popular-categories, include = FALSE}
+board_games_splitcats <- board_games %>% 
+  mutate(categories = str_split(category, ","))
+
+popular_categories <- board_games_splitcats %>%
+  pull(categories) %>%
+  unlist %>%
+  as_tibble %>%
+  count(value) %>%
+  arrange(desc(n)) %>%
+  head(6)
+```
+
+```{r no_ratings-v-rating, warning = FALSE}
+board_games_splitcats %>%
+  ggplot() +
+  geom_point(aes(x = users_rated, y = average_rating), alpha = 0.5) +
+  scale_x_log10() +
+  labs(
+  x = "Number of ratings",
+  y = "Average ratings",
+  title = "Number of ratings against average rating"
+  )
+```
+
+This plot suggests that games with more ratings tend to have an average rating closer to just under 7.5. However, this may be because there are more games with a rating of 7.5, which increases the likelihood that there will be a game with particularly a large number of ratings. To analyze this further, we will need to eliminate the effect of this confounding variable (number of games with a given rating) to properly analyze the relationship between the two variables. 
+
+## Further work
+
+```{r plus-x-y-densities}
+board_games_splitcats %>%
+  ggplot() +
+  geom_point(aes(x = users_rated, y = average_rating), alpha = 0.05) +
+  geom_density(aes(x = users_rated, y = (..scaled.. * 5)), colour = "red") +
+  geom_density(aes(x = (..scaled.. * 1e4), y = average_rating), colour = "orange") +
+  scale_x_log10() +
+  labs(
+  x = "Number of ratings",
+  y = "Average ratings",
+  title = "Number of ratings against average rating"
+  ) + 
+  scale_colour_viridis_c()
+  # xlim(NA, 20000)
+```
+
+```{r eval=FALSE}
+library(plotly)
+
+board_games_splitcats %>% 
+  plot_ly(x = ~users_rated, y = ~average_rating, z = ~year_published, type = "scatter3d", mode = "markers", marker = list(color = ~year_published, colorscale = c('#FFE1A1', '#683531'), showscale = TRUE), size = 1, opacity = 0.1)
+# plot_ly(x=temp, y=pressure, z=dtime, type="scatter3d", mode="markers", color=temp)
+```
 
