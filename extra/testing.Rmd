@@ -1,6 +1,8 @@
 ---
 title: "tester"
 output: github_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r load-packages, message = FALSE}
@@ -8,8 +10,7 @@ library(tidyverse)
 library(broom)
 library(pander)
 library(here)
-library(rsample)
-library(parsnip)
+library(tidymodels)
 ```
 
 ```{r setup, include=FALSE}
@@ -21,31 +22,82 @@ board_games <- read_csv(here("data/board_games.csv"))
 ```{r boarg_games_split}
 summary(board_games)
 
+board_games <- board_games %>%
+  filter(playing_time != 0, min_playtime != 0)
+
 set.seed(1116)
 
 games_split <- initial_split(board_games, prop = 0.8)
 train_data <- training(games_split)
-test_data <- testing(games_split)
+test_data <- testing(games_split) 
 ```
 
 ## Including Plots
 
-```{r pressure}
+```{r model}
 games_lm_mod <- linear_reg() %>%
   set_engine("lm")
 
-games_play_lm_fit <- games_lm_mod %>%
-  fit(average_rating ~ playing_time, data = train_data)
+games_play_recipe <- recipe(average_rating ~ playing_time, data = train_data) %>%
+  step_log(all_predictors()) 
 
-tidy(games_play_lm_fit)
+games_play_workflow <- workflow() %>%
+  add_model(games_lm_mod) %>%
+  add_recipe(games_play_recipe)
 
-games_play_all_fit <- games_lm_mod %>%
-  fit(average_rating ~ playing_time + min_playtime + max_playtime, data = board_games)
+games_play_fit <- games_play_workflow %>% 
+  fit(data = train_data)
 
-tidy(games_play_all_fit)
+games_play_all_recipe <- recipe(
+  average_rating ~ playing_time + min_playtime,
+  data = train_data
+  ) %>%
+  step_log(all_predictors())
+
+games_play_all_workflow <- workflow() %>%
+  add_model(games_lm_mod) %>%
+  add_recipe(games_play_all_recipe)
+
+games_play_all_fit <- games_play_all_workflow %>%
+  fit(data = train_data)
 ```
 
 positive playtime coefficient implies that as playtime increases average rating is expected to increase.
+
+```{r predict}
+games_play_pred <- predict(games_play_fit, test_data) %>%
+  bind_cols(test_data)
+
+games_play_pred %>%
+  ggplot(aes(x = playing_time)) +
+  geom_point(aes(y = average_rating)) +
+  geom_line(aes(y = .pred), colour = "red") +
+  scale_x_log10() +
+  labs(x = "Average Playing Time", y = "Average Rating")
+
+glance(games_play_fit %>% pull_workflow_fit())
+
+games_play_pred %>%
+  mutate(diff = ((average_rating - .pred)^2)/.pred) %>%
+  select(diff) %>%
+  unlist() %>%
+  sum()
+
+games_play_all_pred <- predict(games_play_all_fit, test_data) %>%
+  bind_cols(test_data)
+
+games_play_all_pred %>%
+  mutate(diff = ((average_rating - .pred)^2)/.pred) %>%
+  select(diff) %>%
+  unlist() %>%
+  sum()
+
+games_play_all_pred %>%
+  mutate(.pred_all = .pred, .keep = "unused") %>%
+  right_join(games_play_pred) %>%
+  select(.pred, .pred_all, average_rating, everything())
+```
+
 
 ```{r plot}
 board_games %>%
@@ -54,6 +106,9 @@ board_games %>%
 ```
 
 ```{r find anomaly}
+games_play_pred %>%
+  filter(playing_time < 1)
+
 board_games %>%
   filter(playing_time > 40000) %>%
   select(name)
