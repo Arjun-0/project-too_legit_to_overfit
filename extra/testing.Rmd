@@ -1,0 +1,77 @@
+---
+title: "tester"
+output: github_document
+---
+
+```{r load-packages, message = FALSE}
+library(tidyverse)
+library(broom)
+library(pander)
+library(here)
+library(rsample)
+library(parsnip)
+```
+
+```{r setup, include=FALSE}
+board_games <- read_csv(here("data/board_games.csv"))
+```
+
+## R Markdown
+
+```{r boarg_games_split}
+summary(board_games)
+
+set.seed(1116)
+
+games_split <- initial_split(board_games, prop = 0.8)
+train_data <- training(games_split)
+test_data <- testing(games_split)
+```
+
+## Including Plots
+
+```{r pressure}
+games_lm_mod <- linear_reg() %>%
+  set_engine("lm")
+
+games_play_lm_fit <- games_lm_mod %>%
+  fit(average_rating ~ playing_time, data = train_data)
+
+tidy(games_play_lm_fit)
+
+games_play_all_fit <- games_lm_mod %>%
+  fit(average_rating ~ playing_time + min_playtime + max_playtime, data = board_games)
+
+tidy(games_play_all_fit)
+```
+
+positive playtime coefficient implies that as playtime increases average rating is expected to increase.
+
+```{r plot}
+board_games %>%
+  ggplot(aes(playing_time, average_rating)) +
+  geom_point(alpha = 0.6)
+```
+
+```{r find anomaly}
+board_games %>%
+  filter(playing_time > 40000) %>%
+  select(name)
+```
+
+```{r log_scale}
+board_games %>%
+  filter(playing_time != 0) %>%
+  ggplot(aes(playing_time, average_rating)) +
+  geom_point(alpha = 0.6) +
+  scale_x_log10()
+```
+
+```{r no_playtime}
+no_playtime <- board_games %>%
+  filter(playing_time == 0) %>%
+  arrange(desc(average_rating))
+```
+
+
+
