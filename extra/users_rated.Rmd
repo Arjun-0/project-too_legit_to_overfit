@@ -13,6 +13,8 @@ library(tidyverse)
 library(broom)
 library(pander)
 library(here)
+library(tidymodels)
+library(fitdistrplus)
 ```
 
 ## Relevant work from proposal
@@ -65,11 +67,78 @@ board_games_splitcats %>%
   # xlim(NA, 20000)
 ```
 
-```{r eval=FALSE}
+```{r 3d-plot-n_rate-avge-year, eval=FALSE}
 library(plotly)
 
 board_games_splitcats %>% 
   plot_ly(x = ~users_rated, y = ~average_rating, z = ~year_published, type = "scatter3d", mode = "markers", marker = list(color = ~year_published, colorscale = c('#FFE1A1', '#683531'), showscale = TRUE), size = 1, opacity = 0.1)
 # plot_ly(x=temp, y=pressure, z=dtime, type="scatter3d", mode="markers", color=temp)
+```
+
+```{r avge_rating-dist-models}
+my_data <- board_games_splitcats$average_rating
+descdist(my_data, discrete=FALSE, boot=500)
+
+fit <- function(data, distr) {
+  fit <- fitdist(data, distr)
+  
+  print(summary(fit))
+  
+  return(fit)
+}
+
+fit_n  <- fit(my_data, "norm")
+fit_ln  <- fit(my_data, "lnorm")
+fit_l  <- fit(my_data, "logis")
+fit_g  <- fit(my_data, "gamma")
+
+# Following code inspired by http://www.di.fc.ul.pt/~jpn/r/distributions/fitting.html
+
+plot.legend <- c("normal", "lognormal", "logistic", "gamma")
+
+denscomp(list(fit_n, fit_ln, fit_l, fit_g), legendtext = plot.legend, plotstyle = "ggplot") + theme_minimal()
+
+cdfcomp(list(fit_n, fit_ln, fit_l, fit_g), legendtext = plot.legend, plotstyle = "ggplot") + theme_minimal()
+
+qqcomp(list(fit_n, fit_ln, fit_l, fit_g), legendtext = plot.legend, plotstyle = "ggplot") + theme_minimal()
+
+ppcomp(list(fit_n, fit_ln, fit_l, fit_g), legendtext = plot.legend, plotstyle = "ggplot") + theme_minimal()
+
+gofstat(list(fit_n, fit_ln, fit_g, fit_l), fitnames = c("norm", "lnorm", "gamma", "logis"))
+```
+
+```{r avge_rating-dist-plot}
+sech <- function(x) {
+  1 / cosh(x)
+}
+
+logis <- function(x, u, s) {
+  y <- (1 / (4 * s)) * (sech((x - u) / (2 * s)))^2
+  return(y)
+}
+# inspired by code from https://sebastiansauer.github.io/plotting_s-curve/
+
+logis_av_rating <- function(x) {
+  logis(x, fit_l$estimate[1], fit_l$estimate[2])
+}
+
+board_games_splitcats %>% 
+  ggplot(aes(x = average_rating)) + 
+  geom_density() + 
+  stat_function(
+    fun = dnorm, 
+    args = list(
+      mean = fit_n$estimate[1], 
+      sd = fit_n$estimate[2]
+    ), 
+    colour = "red", 
+    alpha = 0.5
+  ) + 
+  stat_function(fun = logis_av_rating, colour = "orange", alpha = 0.5) + 
+  theme_minimal() + 
+  labs(
+    title = "Fitting distributtions to distribution of average ratings", 
+    subtitle = "red = normal; orange = logistic"
+  )
 ```
 
