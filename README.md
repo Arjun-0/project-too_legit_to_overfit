@@ -27,7 +27,11 @@ your project.
     ## ✓ ggplot2 3.3.2     ✓ purrr   0.3.4
     ## ✓ tibble  3.0.4     ✓ dplyr   1.0.2
     ## ✓ tidyr   1.1.2     ✓ stringr 1.4.0
+<<<<<<< HEAD
     ## ✓ readr   1.4.0     ✓ forcats 0.5.0
+=======
+    ## ✓ readr   1.3.1     ✓ forcats 0.5.0
+>>>>>>> e9b23bca2dd3e3fc6a921be61034323bd6ed2de2
 
     ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
     ## x dplyr::filter() masks stats::filter()
@@ -35,8 +39,12 @@ your project.
 
     ## here() starts at /cloud/project
 
+<<<<<<< HEAD
     ## 
     ## ── Column specification ────────────────────────────────────────────────────────
+=======
+    ## Parsed with column specification:
+>>>>>>> e9b23bca2dd3e3fc6a921be61034323bd6ed2de2
     ## cols(
     ##   .default = col_character(),
     ##   game_id = col_double(),
@@ -50,7 +58,12 @@ your project.
     ##   average_rating = col_double(),
     ##   users_rated = col_double()
     ## )
+<<<<<<< HEAD
     ## ℹ Use `spec()` for the full column specifications.
+=======
+
+    ## See spec(...) for full column specifications.
+>>>>>>> e9b23bca2dd3e3fc6a921be61034323bd6ed2de2
 
 ## Presentation
 
