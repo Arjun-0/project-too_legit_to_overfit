@@ -68,22 +68,7 @@ board_games_splitcats %>%
   # xlim(NA, 20000)
 ```
 
-```{r av-n-rating-model}
-set.seed(314159)
-bg_split <- initial_split(board_games_splitcats, prop = 0.8)
-train_data <- training(bg_split)
-test_data <- testing(bg_split)
-
-bg_fit <- linear_reg() %>% 
-  set_engine("lm") %>% 
-  fit(average_rating ~ log(users_rated), data = board_games_splitcats)
-
-predict(bg_fit, test_data) %>% 
-  bind_cols(test_data %>% dplyr::select(average_rating, users_rated, name))
-
-# YET TO EVALUATE PERFORMANCE
-```
-
+Below, I have attempted to create a 3D plot of average_rating against users_rated against year_published. It was not particularly informative. 
 
 ```{r 3d-plot-n_rate-avge-year, eval=FALSE}
 library(plotly)
@@ -92,6 +77,34 @@ board_games_splitcats %>%
   plot_ly(x = ~users_rated, y = ~average_rating, z = ~year_published, type = "scatter3d", mode = "markers", marker = list(color = ~year_published, colorscale = c('#FFE1A1', '#683531'), showscale = TRUE), size = 1, opacity = 0.1)
 # plot_ly(x=temp, y=pressure, z=dtime, type="scatter3d", mode="markers", color=temp)
 ```
+
+### Modelling average_rating from users_rated
+
+```{r av-n-rating-model}
+set.seed(314159)
+bg_rating_split <- initial_split(board_games_splitcats, prop = 0.8)
+train_data <- training(bg_rating_split)
+test_data <- testing(bg_rating_split)
+
+bg_rating_fit <- linear_reg() %>% 
+  set_engine("lm") %>% 
+  fit(average_rating ~ log(users_rated), data = train_data)
+
+bg_rating_fit_tidy <- tidy(bg_rating_fit$fit)
+bg_rating_fit_aug <- augment(bg_rating_fit$fit)
+
+bg_rating_predictions <- predict(bg_rating_fit, test_data) %>% 
+  bind_cols(test_data %>% dplyr::select(average_rating, users_rated, name))
+
+ggplot(dat = bg_rating_predictions, aes(x = users_rated)) + 
+  geom_point(aes(y = average_rating)) + 
+  geom_line(aes(y = .pred), colour = "red") + 
+  scale_x_log10()
+
+# YET TO EVALUATE PERFORMANCE
+```
+
+### Fitting a statistical distribution to the distribution of average_rating values
 
 ```{r avge_rating-dist-models}
 my_data <- board_games_splitcats$average_rating
@@ -160,3 +173,25 @@ board_games_splitcats %>%
   )
 ```
 
+### Modelling distribution of average_rating from users_rated
+
+What I am trying to do in next chunk is model the distribution of average_rating depending on users_rated. Thus the steps will likely involve: 
+
+1. Bin users_rated (unless I can do it in a moving average style)
+2. Fit normal (or logistic) distr. to average_rating density of each bin (ie. find y-bar and s_y^2)
+3. Model normal distr. as function of users_rated (ie. modelling y-bar and s_y^2 as functions of users_rated)
+
+Hopefully will then have a model which gives, for each users_rated, a probability distribution of average_rating
+
+```{r av-n-rating-distr-model, eval = FALSE}
+# eval = FALSE as code not yet functioning
+
+bg_rating_rec <- recipe(
+  average_rating ~ ., 
+  data = train_data
+) %>% 
+  step_discretize(num_breaks = 10)
+
+# Unfinished
+## Is this the right way of going about it? need to look in to this more
+```
