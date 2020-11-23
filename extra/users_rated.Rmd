@@ -61,11 +61,29 @@ board_games_splitcats %>%
   labs(
   x = "Number of ratings",
   y = "Average ratings",
-  title = "Number of ratings against average rating"
+  title = "Number of ratings against average rating", 
+  subtitle = "Showing density plots of x and y overlayed"
   ) + 
   scale_colour_viridis_c()
   # xlim(NA, 20000)
 ```
+
+```{r av-n-rating-model}
+set.seed(314159)
+bg_split <- initial_split(board_games_splitcats, prop = 0.8)
+train_data <- training(bg_split)
+test_data <- testing(bg_split)
+
+bg_fit <- linear_reg() %>% 
+  set_engine("lm") %>% 
+  fit(average_rating ~ log(users_rated), data = board_games_splitcats)
+
+predict(bg_fit, test_data) %>% 
+  bind_cols(test_data %>% dplyr::select(average_rating, users_rated, name))
+
+# YET TO EVALUATE PERFORMANCE
+```
+
 
 ```{r 3d-plot-n_rate-avge-year, eval=FALSE}
 library(plotly)
