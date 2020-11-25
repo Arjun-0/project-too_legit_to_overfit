@@ -1,7 +1,6 @@
-How do Certain Factors Affect the Ratings of Boardgames?
-================
-by Too Legit To Overfit
+# Too Legit to Overfit - Project
 
+<<<<<<< HEAD
 ## Summary
 
 Write-up of your project and findings go here. Think of this as the text
@@ -79,3 +78,6 @@ Tuesdays, viewed 23 October 2020,
 
 List any references here. You should, at a minimum, list your data
 source.
+=======
+See [our website](https://ids-s1-20.github.io/project-too_legit_to_overfit/) for our project summary and findings. Our presentation slides can be found [here](https://github.com/ids-s1-20/project-too_legit_to_overfit/blob/main/presentation/presentation.html).
+>>>>>>> e1821df7910bd7794ed84cae56c202e4b455dfc9

@@ -2,7 +2,7 @@
 title: "users_rated"
 author: "Arjun NR"
 date: "11/21/2020"
-output: html_document
+output: github_document
 editor_options: 
   chunk_output_type: console
 ---
