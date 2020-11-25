@@ -194,4 +194,9 @@ bg_rating_rec <- recipe(
 
 # Unfinished
 ## Is this the right way of going about it? need to look in to this more
+
+#Feedback from Mine:
+##in predict() can have confidence interval for each value vs the average - this will give some indication of distribution around the line. Not necessarily good idea to use sd to predict normal distribution as then you are imposing the distribution (guessing it) rather than obtaining it. 
+#Can say in project that this is something we could do further (predicting distribution) if give reasons, even if don't necessarily do it. 
+#--> something about estimating a prior; bayesian distributions
 ```
