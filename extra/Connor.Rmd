@@ -74,6 +74,7 @@ cat_ratings %>%
   pivot_longer(cols = 2:ncol(cat_ratings), names_to = "category", values_to = "av_rating") %>% 
   ggplot(aes(x = year_published, y = av_rating, colour = category)) + 
   geom_line() +
+  geom_smooth(method = "lm", se = FALSE) +
   facet_wrap(~ category) +
   labs(
     x = "Year published", 
@@ -85,8 +86,23 @@ cat_ratings %>%
   theme_minimal()
 ```
 
-Looking at this we can see that there is a trend in each category that the annual average rating increases over time, so this might be cool to look into. However next i'll look into the correlation coefficients of each category and the average rating if I can work out how to do that.
+Now looking at category vs rating cause it looks like the year published will send the rating up but maybe not the category itself
 
-```{r top-cats-and-correlations}
+```{r yeet}
+board_games_empty <- board_games_splitcats %>%
+  filter(FALSE)
+board_games_popcats <- board_games_empty
 
+for (c in popular_categories) {
+  board_games_popcats <- full_join(
+    board_games_popcats,
+    board_games_splitcats %>%
+      filter(map_lgl(categories, ~c %in% .x)) %>%
+      mutate(category = c)
+  )
+}
+
+linear_reg() %>%
+  set_engine("lm") %>%
+  fit(average_rating ~ category, data = board_games_popcats)
 ```

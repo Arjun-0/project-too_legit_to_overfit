@@ -89,6 +89,7 @@ cat_ratings %>%
   pivot_longer(cols = 2:ncol(cat_ratings), names_to = "category", values_to = "av_rating") %>% 
   ggplot(aes(x = year_published, y = av_rating, colour = category)) + 
   geom_line() +
+  geom_smooth(method = "lm", se = FALSE) +
   facet_wrap(~ category) +
   labs(
     x = "Year published", 
@@ -100,9 +101,50 @@ cat_ratings %>%
   theme_minimal()
 ```
 
+    ## `geom_smooth()` using formula 'y ~ x'
+
 ![](Connor_files/figure-gfm/top-cats-over-time-plot-1.png)<!-- -->
 
-Looking at this we can see that there is a trend in each category that
-the annual average rating increases over time, so this might be cool to
-look into. However next i’ll look into the correlation coefficients of
-each category and the average rating if I can work out how to do that.
+Now looking at category vs rating cause it looks like the year published
+will send the rating up but maybe not the category itself
+
+``` r
+board_games_empty <- board_games_splitcats %>%
+  filter(FALSE)
+board_games_popcats <- board_games_empty
+
+for (c in popular_categories) {
+  board_games_popcats <- full_join(
+    board_games_popcats,
+    board_games_splitcats %>%
+      filter(map_lgl(categories, ~c %in% .x)) %>%
+      mutate(category = c)
+  )
+}
+```
+
+    ## Joining, by = c("game_id", "description", "image", "max_players", "max_playtime", "min_age", "min_players", "min_playtime", "name", "playing_time", "thumbnail", "year_published", "artist", "category", "compilation", "designer", "expansion", "family", "mechanic", "publisher", "average_rating", "users_rated", "categories")
+    ## Joining, by = c("game_id", "description", "image", "max_players", "max_playtime", "min_age", "min_players", "min_playtime", "name", "playing_time", "thumbnail", "year_published", "artist", "category", "compilation", "designer", "expansion", "family", "mechanic", "publisher", "average_rating", "users_rated", "categories")
+    ## Joining, by = c("game_id", "description", "image", "max_players", "max_playtime", "min_age", "min_players", "min_playtime", "name", "playing_time", "thumbnail", "year_published", "artist", "category", "compilation", "designer", "expansion", "family", "mechanic", "publisher", "average_rating", "users_rated", "categories")
+    ## Joining, by = c("game_id", "description", "image", "max_players", "max_playtime", "min_age", "min_players", "min_playtime", "name", "playing_time", "thumbnail", "year_published", "artist", "category", "compilation", "designer", "expansion", "family", "mechanic", "publisher", "average_rating", "users_rated", "categories")
+    ## Joining, by = c("game_id", "description", "image", "max_players", "max_playtime", "min_age", "min_players", "min_playtime", "name", "playing_time", "thumbnail", "year_published", "artist", "category", "compilation", "designer", "expansion", "family", "mechanic", "publisher", "average_rating", "users_rated", "categories")
+    ## Joining, by = c("game_id", "description", "image", "max_players", "max_playtime", "min_age", "min_players", "min_playtime", "name", "playing_time", "thumbnail", "year_published", "artist", "category", "compilation", "designer", "expansion", "family", "mechanic", "publisher", "average_rating", "users_rated", "categories")
+
+``` r
+linear_reg() %>%
+  set_engine("lm") %>%
+  fit(average_rating ~ category, data = board_games_popcats)
+```
+
+    ## parsnip model object
+    ## 
+    ## Fit time:  5ms 
+    ## 
+    ## Call:
+    ## stats::lm(formula = average_rating ~ category, data = data)
+    ## 
+    ## Coefficients:
+    ##             (Intercept)         categoryEconomic          categoryFantasy  
+    ##                  6.2551                   0.3135                   0.2672  
+    ##        categoryFighting  categoryScience Fiction          categoryWargame  
+    ##                  0.3328                   0.2291                   0.5198
