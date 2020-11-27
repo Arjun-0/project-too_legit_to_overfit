@@ -1,0 +1,18 @@
+---
+title: "Connor's Testing with Categories"
+output: github_document
+---
+
+#basic setup :)
+  
+```{r load-packages, message = FALSE}
+library(tidyverse)
+library(broom)
+library(pander)
+library(here)
+```
+
+```{r read-data, message = FALSE}
+board_games <- read_csv(here("data/board_games.csv"))
+```
+
