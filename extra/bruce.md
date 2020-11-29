@@ -5,7 +5,9 @@ Bruce’s little playground
 
 ``` r
 library(tidyverse)
+library(tidymodels)
 library(here)
+library(pander)
 ```
 
 ``` r
@@ -39,6 +41,28 @@ board_games %>%
 ```
 
 ![](bruce_files/figure-gfm/year-published-rating-1.png)<!-- -->
+
+Fitting a linear regression we can see that the year a game was
+published does affect its ratings, but it is far from completely
+explaining it.
+
+``` r
+year_published_rating_fit <- linear_reg() %>%
+  set_engine("lm") %>%
+  fit(average_rating ~ year_published, data = board_games)
+
+pander(glance(year_published_rating_fit))
+```
+
+| r.squared | adj.r.squared | sigma | statistic |  p.value   | df  | logLik |
+|:---------:|:-------------:|:-----:|:---------:|:----------:|:---:|:------:|
+|  0.09508  |     0.095     | 0.809 |   1106    | 8.916e-231 |  1  | -12710 |
+
+Table continues below
+
+|  AIC  |  BIC  | deviance | df.residual | nobs  |
+|:-----:|:-----:|:--------:|:-----------:|:-----:|
+| 25427 | 25449 |   6891   |    10530    | 10532 |
 
 ## Year Published vs Number of Ratings
 

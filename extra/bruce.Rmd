@@ -1,17 +1,34 @@
 ---
 title: "Bruce's little playground"
-output: github_document
+output:
+  html_document:
+    theme: journal
+    highlight: pygments
 ---
 
 ## Setup
 
 ```{r load-packages, message = FALSE}
 library(tidyverse)
+library(tidymodels)
 library(here)
+library(pander)
 ```
 
 ```{r read-data, message = FALSE}
 board_games <- read_csv(here("data/board_games.csv"))
+```
+
+```{r r-squared, echo = FALSE}
+display_r_squared <- function(fit) {
+  paste0(
+    "$$R^2=",
+    round(glance(fit)$r.squared[1], 3),
+    ",R_{adj}^2=",
+    round(glance(fit)$adj.r.squared[1], 3),
+    ".$$"
+  )
+}
 ```
 
 ## Year Published vs Rating
@@ -40,20 +57,28 @@ board_games %>%
   )
 ```
 
+Fitting a linear regression we can see that
+the year a game was published does affect its ratings,
+but it is far from completely explaining it.
+
+```{r year-published-rating-fit}
+year_published_rating_fit <- linear_reg() %>%
+  set_engine("lm") %>%
+  fit(average_rating ~ year_published, data = board_games)
+```
+
+`r display_r_squared(year_published_rating_fit)`
+
 ## Year Published vs Number of Ratings
 
-Here we can see that games older than 1980
-have almost no ratings in comparison to more recent games,
-where we see exponential growth in users rated.
-This shows us that more recent games
-are much more reviewed than those before 1980.
-So it is clear that not only are older games less well rated,
-they are also rated by fewer people.
+This graph shows us that the number of ratings a game has
+is fairly independent of the year that game was published,
+with the exception of a dip around 1980.
 
 ```{r year-published-users-rated, message = FALSE}
 board_games %>%
   group_by(year_published) %>%
-  summarise(users = sum(users_rated)) %>%
+  summarise(users = mean(users_rated)) %>%
   ggplot(aes(
     x = year_published,
     y = users
@@ -66,6 +91,34 @@ board_games %>%
     y = "Number of Ratings"
   )
 ```
+
+The spike at 1959 can be explained by a few games,
+namely *Risk* and *Diplomacy*,
+having very high numbers of ratings and
+there not being many other games realeased that year.
+
+```{r}
+board_games %>%
+  filter(
+    year_published == 1959
+  ) %>%
+  arrange(desc(users_rated)) %>%
+  select(name, users_rated, year_published) %>%
+  pander()
+```
+
+The coefficient of determination of our regression,
+as well as our graph,
+show us that year of publication
+is not a good predictor of number of ratings.
+
+```{r year-published-users-rated-fit}
+year_published_users_rated_fit <- linear_reg() %>%
+  set_engine("lm") %>%
+  fit(users_rated ~ year_published, data = board_games)
+```
+
+`r display_r_squared(year_published_users_rated_fit)`
 
 ## Most Popular Categories Over Time
 
