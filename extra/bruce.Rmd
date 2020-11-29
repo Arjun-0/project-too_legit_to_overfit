@@ -16,7 +16,12 @@ board_games <- read_csv(here("data/board_games.csv"))
 
 ## Year Published vs Rating
 
-Here we see that average ratings have an overall upwards trend, with a brief plateau from 1980 to 2000 and then a sharp rise. This seems to suggest that the preference of the Board Game Geek community is more toward more recent games than older ones, and possibly that board games fall out of favour as they age, although as we have no past ratings data there is no way to verify this.
+Here we see that average ratings have an overall upwards trend,
+with a brief plateau from 1980 to 2000 and then a sharp rise.
+This seems to suggest that the preference of the Board Game Geek community
+is more toward more recent games than older ones,
+and possibly that board games fall out of favour as they age,
+although as we have no past ratings data there is no way to verify this.
 
 ```{r year-published-rating, message = FALSE}
 board_games %>%
@@ -37,7 +42,13 @@ board_games %>%
 
 ## Year Published vs Number of Ratings
 
-Here we can see that the number of ratings on games older than 1980 have almost no ratings in comparison to more recent games, where we see exponential growth in users rated. This shows us that more recent games are much more reviewed than those before 1980. So it is clear that not only are older games less well rated, they are also rated by fewer people.
+Here we can see that games older than 1980
+have almost no ratings in comparison to more recent games,
+where we see exponential growth in users rated.
+This shows us that more recent games
+are much more reviewed than those before 1980.
+So it is clear that not only are older games less well rated,
+they are also rated by fewer people.
 
 ```{r year-published-users-rated, message = FALSE}
 board_games %>%
@@ -74,7 +85,10 @@ popular_categories <- board_games_splitcats %>%
   pull(value)
 ```
 
-Next, we find all of the games in each of these categories. We are okay with duplicate rows, as if a game is in two of the most popular categories we want it to be accounted for in both categories.
+Next, we find all of the games in each of these categories.
+We are okay with duplicate rows,
+as if a game is in two of the most popular categories
+we want it to be accounted for in both categories.
 
 ```{r popular-games, message = FALSE}
 board_games_empty <- board_games_splitcats %>%
@@ -91,7 +105,9 @@ for (c in popular_categories) {
 }
 ```
 
-Finally, we can plot the popularity of each category over time. Popularity, here, refers to the number of board games in each category as this is analogous to popularity among board game manufacturers.
+Finally, we can plot the popularity of each category over time.
+Popularity, here, refers to the number of board games in each category
+as this is analogous to popularity among board game manufacturers.
 
 ```{r popular-categories-year-published, message = FALSE}
 board_games_popcats %>%
@@ -111,4 +127,12 @@ board_games_popcats %>%
   )
 ```
 
-We can see from this graph that the overall trend in number of games is still upwards, but we see a few interesting points. For one, after about 1990 the number of card games starts to rise far above the other games in terms of popularity. This may be because with the growing popularity of the internet, it became much easier for people to make and share their own card games. Also, around 1970 the number of wargames drastically increased, becoming noticeably more popular than every other category until being overtaken by card games around 2010 and then all the other categories here more recently.
+We can see here that the number of games has an upward trend.
+For one, after about 1990,
+card games start to rise far above the others in terms of popularity.
+This may be because with the growing popularity of the internet,
+it became much easier for people to make and share their own card games.
+Also, around 1970, the number of wargames drastically increased,
+becoming noticeably more popular than every other category
+until being overtaken by card games around 2010
+and then all the other popular categories more recently.
