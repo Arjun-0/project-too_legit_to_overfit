@@ -244,8 +244,7 @@ fit_g  <- fit(my_data, "gamma")
     ## rate  0.9952481 1.0000000
 
 ``` r
-# Following code inspired by http://www.di.fc.ul.pt/~jpn/r/distributions/fitting.html
-
+# The following code is based on (Neto, 2015)
 plot.legend <- c("normal", "lognormal", "logistic", "gamma")
 
 denscomp(list(fit_n, fit_ln, fit_l, fit_g), legendtext = plot.legend, plotstyle = "ggplot") + theme_minimal()
@@ -296,8 +295,7 @@ sech <- function(x) {
 logis <- function(x, u, s) {
   y <- (1 / (4 * s)) * (sech((x - u) / (2 * s)))^2
   return(y)
-}
-# inspired by code from https://sebastiansauer.github.io/plotting_s-curve/
+} # inspired by code from (Sauer, 2017)
 
 logis_av_rating <- function(x) {
   logis(x, fit_l$estimate[1], fit_l$estimate[2])
@@ -351,4 +349,9 @@ bg_rating_rec <- recipe(
 
 # Unfinished
 ## Is this the right way of going about it? need to look in to this more
+
+#Feedback from Mine:
+##in predict() can have confidence interval for each value vs the average - this will give some indication of distribution around the line. Not necessarily good idea to use sd to predict normal distribution as then you are imposing the distribution (guessing it) rather than obtaining it. 
+#Can say in project that this is something we could do further (predicting distribution) if give reasons, even if don't necessarily do it. 
+#--> something about estimating a prior; bayesian distributions
 ```

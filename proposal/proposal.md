@@ -67,6 +67,7 @@ number of ratings, and playtime. The most common categories are:
 board_games_splitcats <- board_games %>% 
   mutate(categories = str_split(category, ","))
 
+# Creates a tibble of the top six game categories (ranked by average_rating)
 popular_categories <- board_games_splitcats %>%
   pull(categories) %>%
   unlist %>%
@@ -93,6 +94,7 @@ popular_categories <- pull(popular_categories, value)
 ```
 
 ``` r
+# board_games_topcats is a data frame filtered so that it contains only games board games that fall into at least one of the six most popular categories
 board_games_topcats <- board_games_splitcats %>% 
   filter(map_lgl(categories, ~any(popular_categories %in% .x)))
 ```
@@ -105,6 +107,7 @@ sum of all ratings in a category (in a given year) divided by the total
 number of such ratings).
 
 ``` r
+# av_annual_rating() finds average rating (of a category (cat) if given) of board games in dataframe given (df) for each year in which a board game of that category was published. Output is a dataframe. df must have columns `year published`, `categories` (a `list` of categories), `average_rating` and `year_published`. 
 av_annual_rating <- function(df, cat = NULL) {
   {if(!is.null(cat)) {
     df %>% filter(map_lgl(categories, ~cat %in% .x))
@@ -114,8 +117,8 @@ av_annual_rating <- function(df, cat = NULL) {
   group_by(year_published) %>% 
   summarise(av_annual_rating = sum(average_rating * users_rated) / sum(users_rated))
 }
-# finds average rating (of a category (cat) if given) of board games in dataframe given (df) for each year in which a board game of that category was published. Output is a dataframe. df must have columns `year published`, `categories` (a `list` of categories), `average_rating` and `year_published`. 
 
+# Applies av_annual_rating() to each category in popular_categories. The product of this is a list of tibles, so we reduce() this down to a single tibble. 
 cats <- map(popular_categories, ~av_annual_rating(df = board_games_topcats, cat = .))
 
 cat_ratings <- reduce(cats, ~full_join(.x,.y, by = "year_published")) %>% 
@@ -129,6 +132,7 @@ names(cat_ratings) <- c("year_published", popular_categories)
 ```
 
 ``` r
+# Plots average rating for each top category against year published
 cat_ratings %>% 
   pivot_longer(cols = 2:ncol(cat_ratings), names_to = "category", values_to = "av_rating") %>% 
   ggplot(aes(x = year_published, y = av_rating, colour = category)) + 
@@ -154,6 +158,7 @@ changes in playtime or game mechanics, for example, could be an
 influence.
 
 ``` r
+# Plots overall average rating against year published
 board_games_splitcats %>% 
   av_annual_rating() %>% 
   ggplot(aes(x = year_published, y = av_annual_rating)) +
@@ -173,6 +178,7 @@ Indeed the overall trend for board game ratings has been an increase in
 ratings for more recently published games.
 
 ``` r
+# Plots distribution of average ratings for 100 most popular games compared to all other games
 board_games_splitcats %>% 
   mutate(
     top_games = if_else(
@@ -200,6 +206,7 @@ longer playing time.
 Plotting the number of ratings against the average rating of each game:
 
 ``` r
+# Plots average rating against number of ratings
 board_games_splitcats %>%
  ggplot() +
  geom_point(aes(x = users_rated, y = average_rating), alpha = 0.5) + 
