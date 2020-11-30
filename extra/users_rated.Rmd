@@ -123,8 +123,8 @@ fit_ln  <- fit(my_data, "lnorm")
 fit_l  <- fit(my_data, "logis")
 fit_g  <- fit(my_data, "gamma")
 
-# Following code inspired by http://www.di.fc.ul.pt/~jpn/r/distributions/fitting.html
 
+# The following code is based on (Neto, 2015)
 plot.legend <- c("normal", "lognormal", "logistic", "gamma")
 
 denscomp(list(fit_n, fit_ln, fit_l, fit_g), legendtext = plot.legend, plotstyle = "ggplot") + theme_minimal()
@@ -146,8 +146,7 @@ sech <- function(x) {
 logis <- function(x, u, s) {
   y <- (1 / (4 * s)) * (sech((x - u) / (2 * s)))^2
   return(y)
-}
-# inspired by code from https://sebastiansauer.github.io/plotting_s-curve/
+} # inspired by code from (Sauer, 2017)
 
 logis_av_rating <- function(x) {
   logis(x, fit_l$estimate[1], fit_l$estimate[2])
