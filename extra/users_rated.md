@@ -131,31 +131,96 @@ board_games_splitcats %>%
 
 ``` r
 set.seed(314159)
-bg_rating_split <- initial_split(board_games_splitcats, prop = 0.8)
-train_data <- training(bg_rating_split)
-test_data <- testing(bg_rating_split)
+bg_nrate_split <- initial_split(board_games_splitcats, prop = 0.8)
+train_data <- training(bg_nrate_split)
+test_data <- testing(bg_nrate_split)
 
-bg_rating_fit <- linear_reg() %>% 
-  set_engine("lm") %>% 
-  fit(average_rating ~ log(users_rated), data = train_data)
+bg_nrate_rec <- recipe(
+  average_rating ~ users_rated,
+  data = train_data
+) %>% 
+  step_log(users_rated)
 
-bg_rating_fit_tidy <- tidy(bg_rating_fit$fit)
-bg_rating_fit_aug <- augment(bg_rating_fit$fit)
+bg_nrate_model <- linear_reg() %>% 
+  set_engine("lm")
 
-bg_rating_predictions <- predict(bg_rating_fit, test_data) %>% 
-  bind_cols(test_data %>% dplyr::select(average_rating, users_rated, name))
+bg_nrate_wflow <- workflow() %>% 
+  add_model(bg_nrate_model) %>% 
+  add_recipe(bg_nrate_rec)
 
-ggplot(dat = bg_rating_predictions, aes(x = users_rated)) + 
-  geom_point(aes(y = average_rating)) + 
+bg_nrate_fit <- bg_nrate_wflow %>%
+  fit(data = train_data)
+
+bg_nrate_fit_tidy <- tidy(bg_nrate_fit)
+# bg_nrate_fit_aug <- augment(bg_nrate_fit) # Why does this break?
+
+# Evaluation
+set.seed(314159)
+folds <- vfold_cv(train_data, v = 5)
+
+bg_nrate_fit_vfold <- bg_nrate_wflow %>% 
+  fit_resamples(folds)
+```
+
+    ## 
+    ## Attaching package: 'rlang'
+
+    ## The following objects are masked from 'package:purrr':
+    ## 
+    ##     %@%, as_function, flatten, flatten_chr, flatten_dbl, flatten_int,
+    ##     flatten_lgl, flatten_raw, invoke, list_along, modify, prepend,
+    ##     splice
+
+    ## 
+    ## Attaching package: 'vctrs'
+
+    ## The following object is masked from 'package:dplyr':
+    ## 
+    ##     data_frame
+
+    ## The following object is masked from 'package:tibble':
+    ## 
+    ##     data_frame
+
+``` r
+# Metrics for model fitted to v-fold train data: 
+train_metrics <- collect_metrics(bg_nrate_fit_vfold)
+
+# predictions and metrics for test data
+bg_nrate_pred <- predict(bg_nrate_fit, test_data) %>% 
+  bind_cols(
+    predict(bg_nrate_fit, test_data, type = "pred_int"),
+    test_data %>% dplyr::select(average_rating, users_rated, name)
+  )
+
+test_rmse <- rmse(bg_nrate_pred, truth = average_rating, estimate = .pred)
+test_rsq <- rsq(bg_nrate_pred, truth = average_rating, estimate = .pred)
+
+# tibble of metrics for both train and test data
+train_test_metrics <- tribble(
+  ~data, ~metric, ~value,
+  "train", "rmse", train_metrics$mean[1],
+  "train", "rsq", train_metrics$mean[2],
+  "test", "rmse", test_rmse$.estimate[1],
+  "test", "rsq", test_rsq$.estimate[1],
+) %>% 
+  pivot_wider(names_from = data, values_from = value)
+
+# plot of model on full data
+predict(bg_nrate_fit, board_games_splitcats) %>% 
+  bind_cols(
+    predict(bg_nrate_fit, board_games_splitcats, type = "pred_int"),
+    board_games_splitcats %>% dplyr::select(average_rating, users_rated, name)
+  ) %>% 
+  ggplot(aes(x = users_rated)) + 
+  geom_point(aes(y = average_rating), alpha = 0.2) + 
   geom_line(aes(y = .pred), colour = "red") + 
+  geom_line(aes(y = .pred_upper), colour = "dark red", linetype = "dashed") +
+  geom_line(aes(y = .pred_lower), colour = "dark red", linetype = "dashed") + 
   scale_x_log10()
 ```
 
 ![](users_rated_files/figure-gfm/av-n-rating-model-1.png)<!-- -->
-
-``` r
-# YET TO EVALUATE PERFORMANCE
-```
 
 ### Fitting a statistical distribution to the distribution of average\_rating values
 
