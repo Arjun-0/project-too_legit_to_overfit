@@ -61,9 +61,13 @@ dataset are 10,532 x 22.
 
 ## References
 
+### Data
+
 Board Game Geek 2019, *Board Games Database*, electronic dataset, Tidy
 Tuesdays, viewed 23 October 2020,
 <https://github.com/rfordatascience/tidytuesday/tree/master/data/2019/2019-03-12>.
+
+### Code
 
 Jeto N 2015, *Fitting Distributions*, University of Lisbon, viewed 22
 Nov 2020, <http://www.di.fc.ul.pt/~jpn/r/distributions/fitting.html>
