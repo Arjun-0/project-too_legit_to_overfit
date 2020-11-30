@@ -131,20 +131,18 @@ for (c in popular_categories) {
     ## Joining, by = c("game_id", "description", "image", "max_players", "max_playtime", "min_age", "min_players", "min_playtime", "name", "playing_time", "thumbnail", "year_published", "artist", "category", "compilation", "designer", "expansion", "family", "mechanic", "publisher", "average_rating", "users_rated", "categories")
 
 ``` r
-linear_reg() %>%
+cat_fit <- linear_reg() %>%
   set_engine("lm") %>%
   fit(average_rating ~ category, data = board_games_popcats)
+
+cat_fit_aug <- augment(cat_fit$fit)
+
+ggplot(cat_fit_aug, mapping = aes(x = .fitted, y = .resid)) +
+  geom_point(alpha = 0.5) +
+  geom_hline(yintercept = 0, color = "gray", lty = "dashed") +
+  labs(x = "Predicted rating", y = "Residuals")
 ```
 
-    ## parsnip model object
-    ## 
-    ## Fit time:  5ms 
-    ## 
-    ## Call:
-    ## stats::lm(formula = average_rating ~ category, data = data)
-    ## 
-    ## Coefficients:
-    ##             (Intercept)         categoryEconomic          categoryFantasy  
-    ##                  6.2551                   0.3135                   0.2672  
-    ##        categoryFighting  categoryScience Fiction          categoryWargame  
-    ##                  0.3328                   0.2291                   0.5198
+![](Connor_files/figure-gfm/yeet-1.png)<!-- -->
+
+\#\#I HAVE NO IDEA HOW TO DEAL WITH THIS
