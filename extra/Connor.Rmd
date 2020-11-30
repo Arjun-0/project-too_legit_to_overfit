@@ -114,4 +114,4 @@ ggplot(cat_fit_aug, mapping = aes(x = .fitted, y = .resid)) +
   labs(x = "Predicted rating", y = "Residuals")
 ```
 
-##I HAVE NO IDEA HOW TO DEAL WITH THIS
+I HAVE NO IDEA HOW TO DEAL WITH THIS

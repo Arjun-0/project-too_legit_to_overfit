@@ -145,4 +145,4 @@ ggplot(cat_fit_aug, mapping = aes(x = .fitted, y = .resid)) +
 
 ![](Connor_files/figure-gfm/yeet-1.png)<!-- -->
 
-\#\#I HAVE NO IDEA HOW TO DEAL WITH THIS
+I HAVE NO IDEA HOW TO DEAL WITH THIS
