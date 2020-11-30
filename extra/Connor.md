@@ -139,10 +139,18 @@ cat_fit_aug <- augment(cat_fit$fit)
 
 ggplot(cat_fit_aug, mapping = aes(x = .fitted, y = .resid)) +
   geom_point(alpha = 0.5) +
-  geom_hline(yintercept = 0, color = "gray", lty = "dashed") +
+  geom_hline(yintercept = 0, color = "red", lty = "dashed") +
   labs(x = "Predicted rating", y = "Residuals")
 ```
 
 ![](Connor_files/figure-gfm/yeet-1.png)<!-- -->
 
-I HAVE NO IDEA HOW TO DEAL WITH THIS
+``` r
+glance(cat_fit)
+```
+
+    ## # A tibble: 1 x 12
+    ##   r.squared adj.r.squared sigma statistic   p.value    df  logLik    AIC    BIC
+    ##       <dbl>         <dbl> <dbl>     <dbl>     <dbl> <dbl>   <dbl>  <dbl>  <dbl>
+    ## 1    0.0540        0.0535 0.825      101. 5.35e-104     5 -10871. 21756. 21805.
+    ## # … with 3 more variables: deviance <dbl>, df.residual <int>, nobs <int>
