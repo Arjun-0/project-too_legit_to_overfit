@@ -5,7 +5,9 @@ Bruce’s little playground
 
 ``` r
 library(tidyverse)
+library(tidymodels)
 library(here)
+library(pander)
 ```
 
 ``` r
@@ -40,14 +42,35 @@ board_games %>%
 
 ![](bruce_files/figure-gfm/year-published-rating-1.png)<!-- -->
 
+Fitting a linear regression we can see that the year a game was
+published does affect its ratings, but it is far from completely
+explaining it.
+
+``` r
+year_published_rating_fit <- linear_reg() %>%
+  set_engine("lm") %>%
+  fit(average_rating ~ year_published, data = board_games)
+
+pander(glance(year_published_rating_fit))
+```
+
+| r.squared | adj.r.squared | sigma | statistic |  p.value   | df  | logLik |
+|:---------:|:-------------:|:-----:|:---------:|:----------:|:---:|:------:|
+|  0.09508  |     0.095     | 0.809 |   1106    | 8.916e-231 |  1  | -12710 |
+
+Table continues below
+
+|  AIC  |  BIC  | deviance | df.residual | nobs  |
+|:-----:|:-----:|:--------:|:-----------:|:-----:|
+| 25427 | 25449 |   6891   |    10530    | 10532 |
+
 ## Year Published vs Number of Ratings
 
-Here we can see that the number of ratings on games older than 1980 have
-almost no ratings in comparison to more recent games, where we see
-exponential growth in users rated. This shows us that more recent games
-are much more reviewed than those before 1980. So it is clear that not
-only are older games less well rated, they are also rated by fewer
-people.
+Here we can see that games older than 1980 have almost no ratings in
+comparison to more recent games, where we see exponential growth in
+users rated. This shows us that more recent games are much more reviewed
+than those before 1980. So it is clear that not only are older games
+less well rated, they are also rated by fewer people.
 
 ``` r
 board_games %>%
@@ -129,12 +152,11 @@ board_games_popcats %>%
 
 ![](bruce_files/figure-gfm/popular-categories-year-published-1.png)<!-- -->
 
-We can see from this graph that the overall trend in number of games is
-still upwards, but we see a few interesting points. For one, after about
-1990 the number of card games starts to rise far above the other games
-in terms of popularity. This may be because with the growing popularity
-of the internet, it became much easier for people to make and share
-their own card games. Also, around 1970 the number of wargames
-drastically increased, becoming noticeably more popular than every other
-category until being overtaken by card games around 2010 and then all
-the other categories here more recently.
+We can see here that the number of games has an upward trend. For one,
+after about 1990, card games start to rise far above the others in terms
+of popularity. This may be because with the growing popularity of the
+internet, it became much easier for people to make and share their own
+card games. Also, around 1970, the number of wargames drastically
+increased, becoming noticeably more popular than every other category
+until being overtaken by card games around 2010 and then all the other
+popular categories more recently.

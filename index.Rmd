@@ -1,8 +1,17 @@
 ---
 title: How do Certain Factors Affect the Ratings of Boardgames?
-author: by Too Legit To Overfit
-output: github_document
+author: Too Legit To Overfit
+output:
+  html_document:
+    theme: journal
+    highlight: pygments
 ---
+
+```{r load-data, echo = FALSE, message = FALSE}
+library(tidyverse)
+library(here)
+board_games <- read_csv(here("data/board_games.csv"))
+```
 
 ## Summary
 
@@ -19,20 +28,10 @@ You can also load your data here and present any analysis results / plots, but I
 And make sure to hide your code with  `echo = FALSE` unless the point you are trying to make is about the code itself.
 Your results with proper output and graphics go in your presentation, this space is for a brief summary of your project.
 
-```{r load-data, echo = FALSE}
-library(tidyverse)
-library(here)
-board_games <- read_csv(here("data/board_games.csv"))
-```
-
 ## Presentation
 
 Our presentation can be found [here](presentation/presentation.html).
 
-## Data 
+## References 
 
-Board Game Geek 2019, Board Games Database, electronic dataset, Tidy Tuesdays, viewed 23 October 2020, <https://github.com/rfordatascience/tidytuesday/tree/master/data/2019/2019-03-12>.
-
-## References
-
-List any references here. You should, at a minimum, list your data source.
+Board Game Geek 2019, Board Games Database, electronic dataset, Tidy Tuesdays, viewed 23 October 2020, \<https://github.com/rfordatascience/tidytuesday/tree/master/data/2019/2019-03-12>.

@@ -1,32 +1,65 @@
-# data
+data
+================
+Too Legit to Overfit
 
 ## `board_games.csv`
 
-Each row in the dataset represents a board game on Board Game Geeks, and the dimensions of the dataset are 10,532 x 22.
+Each row in the dataset represents a board game on Board Game Geeks, and
+the dimensions of the dataset are 10,532 x 22.
 
- - `game_id` - Unique game identifier
- - `description` - A paragraph of text describing the game
- - `image` - URL image of the game
- - `max_players` - Maximum recommended players
- - `max_playtime` - Maximum recommended playtime (min)
- - `min_age` - Minimum recommended age
- - `min_players` - Minimum recommended players
- - `min_playtime` - Minimum recommended playtime (min)
- - `name` - Name of the game
- - `playing_time` - Average playtime (min)
- - `thumbnail` - URL thumbnail of the game
- - `year_published` - Year game was published
- - `artist` - Artist for game art
- - `category` - Categories for the game (separated by commas)
- - `compilation` - If part of a multi-compilation - name of compilation
- - `designer` - Game designer
- - `expansion` - If there is an expansion pack - name of expansion
- - `family` - Family of game - equivalent to a publisher
- - `mechanic` - Game mechanic - how game is played, separated by comma
- - `publisher` - Company/person who published the game, separated by comma
- - `average_rating` - Average rating on Board Games Geek (1-10)
- - `users_rated` - Number of users that rated the game
+-   `game_id` - Unique game identifier
+-   `description` - A paragraph of text describing the game
+-   `image` - URL image of the game
+-   `max_players` - Maximum recommended players
+-   `max_playtime` - Maximum recommended playtime (min)
+-   `min_age` - Minimum recommended age
+-   `min_players` - Minimum recommended players
+-   `min_playtime` - Minimum recommended playtime (min)
+-   `name` - Name of the game
+-   `playing_time` - Average playtime (min)
+-   `thumbnail` - URL thumbnail of the game
+-   `year_published` - Year game was published
+-   `artist` - Artist for game art
+-   `category` - Categories for the game (separated by commas)
+-   `compilation` - If part of a multi-compilation - name of compilation
+-   `designer` - Game designer
+-   `expansion` - If there is an expansion pack - name of expansion
+-   `family` - Family of game - equivalent to a publisher
+-   `mechanic` - Game mechanic - how game is played, separated by comma
+-   `publisher` - Company/person who published the game, separated by
+    comma
+-   `average_rating` - Average rating on Board Games Geek (1-10)
+-   `users_rated` - Number of users that rated the game
+
+<!-- -->
+
+    ## Rows: 10,532
+    ## Columns: 22
+    ## $ game_id        <dbl> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,…
+    ## $ description    <chr> "Die Macher is a game about seven sequential political…
+    ## $ image          <chr> "//cf.geekdo-images.com/images/pic159509.jpg", "//cf.g…
+    ## $ max_players    <dbl> 5, 4, 4, 4, 6, 6, 2, 5, 4, 6, 7, 5, 4, 4, 6, 4, 2, 8, …
+    ## $ max_playtime   <dbl> 240, 30, 60, 60, 90, 240, 20, 120, 90, 60, 45, 60, 120…
+    ## $ min_age        <dbl> 14, 12, 10, 12, 12, 12, 8, 12, 13, 10, 13, 12, 10, 10,…
+    ## $ min_players    <dbl> 3, 3, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 3, 3, 2, 3, 2, 2, …
+    ## $ min_playtime   <dbl> 240, 30, 30, 60, 90, 240, 20, 120, 90, 60, 45, 45, 60,…
+    ## $ name           <chr> "Die Macher", "Dragonmaster", "Samurai", "Tal der Köni…
+    ## $ playing_time   <dbl> 240, 30, 60, 60, 90, 240, 20, 120, 90, 60, 45, 60, 120…
+    ## $ thumbnail      <chr> "//cf.geekdo-images.com/images/pic159509_t.jpg", "//cf…
+    ## $ year_published <dbl> 1986, 1981, 1998, 1992, 1964, 1989, 1978, 1993, 1998, …
+    ## $ artist         <chr> "Marcus Gschwendtner", "Bob Pepper", "Franz Vohwinkel"…
+    ## $ category       <chr> "Economic,Negotiation,Political", "Card Game,Fantasy",…
+    ## $ compilation    <chr> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, "CATAN…
+    ## $ designer       <chr> "Karl-Heinz Schmiel", "G. W. \"Jerry\" D'Arcey", "Rein…
+    ## $ expansion      <chr> NA, NA, NA, NA, NA, NA, NA, NA, NA, "Elfengold,Elfenla…
+    ## $ family         <chr> "Country: Germany,Valley Games Classic Line", "Animals…
+    ## $ mechanic       <chr> "Area Control / Area Influence,Auction/Bidding,Dice Ro…
+    ## $ publisher      <chr> "Hans im Glück Verlags-GmbH,Moskito Spiele,Valley Game…
+    ## $ average_rating <dbl> 7.66508, 6.60815, 7.44119, 6.60675, 7.35830, 6.52534, …
+    ## $ users_rated    <dbl> 4498, 478, 12019, 314, 15195, 73, 2751, 186, 1263, 672…
 
 ## References
 
-Board Game Geek 2019, Board Games Database, electronic dataset, Tidy Tuesdays, viewed 23 October 2020, <https://github.com/rfordatascience/tidytuesday/tree/master/data/2019/2019-03-12>.
+Board Game Geek 2019, Board Games Database, electronic dataset, Tidy
+Tuesdays, viewed 23 October 2020,
+<https://github.com/rfordatascience/tidytuesday/tree/master/data/2019/2019-03-12>.
