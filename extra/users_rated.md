@@ -259,6 +259,8 @@ for (c in popular_categories) {
     ## Joining, by = c("game_id", "description", "image", "max_players", "max_playtime", "min_age", "min_players", "min_playtime", "name", "playing_time", "thumbnail", "year_published", "artist", "category", "compilation", "designer", "expansion", "family", "mechanic", "publisher", "average_rating", "users_rated", "categories")
     ## Joining, by = c("game_id", "description", "image", "max_players", "max_playtime", "min_age", "min_players", "min_playtime", "name", "playing_time", "thumbnail", "year_published", "artist", "category", "compilation", "designer", "expansion", "family", "mechanic", "publisher", "average_rating", "users_rated", "categories")
 
+Modelling with all four variables we are considering:
+
 ``` r
 set.seed(314159)
 bg_split <- initial_split(board_games_popcats, prop = 0.8)
@@ -343,6 +345,94 @@ bg_train_test_metrics
     ## 1 rmse    0.712  0.830
     ## 2 rsq     0.303  0.108
     ## 3 adj rsq 0.323 NA
+
+And if we include minimum age:
+
+``` r
+set.seed(314159)
+bg_split <- initial_split(board_games_popcats, prop = 0.8)
+train_data <- training(bg_split)
+test_data <- testing(bg_split)
+
+
+bg_rec <- recipe(
+  average_rating ~ users_rated + category + year_published + playing_time + min_age,
+  data = train_data
+) %>% 
+  step_log(users_rated)
+
+bg_model <- linear_reg() %>% 
+  set_engine("lm")
+
+bg_wflow <- workflow() %>% 
+  add_model(bg_model) %>% 
+  add_recipe(bg_rec)
+
+bg_fit <- bg_wflow %>%
+  fit(data = train_data)
+
+bg_fit_tidy <- tidy(bg_fit)
+
+bg_fit_tidy
+```
+
+    ## # A tibble: 10 x 5
+    ##    term                       estimate std.error statistic   p.value
+    ##    <chr>                         <dbl>     <dbl>     <dbl>     <dbl>
+    ##  1 (Intercept)             -51.4       1.48         -34.6  8.17e-243
+    ##  2 users_rated               0.201     0.00628       32.0  1.63e-209
+    ##  3 categoryEconomic          0.312     0.0304        10.3  1.61e- 24
+    ##  4 categoryFantasy           0.220     0.0265         8.30 1.20e- 16
+    ##  5 categoryFighting          0.308     0.0296        10.4  3.09e- 25
+    ##  6 categoryScience Fiction   0.294     0.0305         9.65 6.52e- 22
+    ##  7 categoryWargame           0.905     0.0240        37.6  1.41e-282
+    ##  8 year_published            0.0281    0.000740      37.9  1.44e-286
+    ##  9 playing_time              0.0000329 0.0000103      3.20 1.37e-  3
+    ## 10 min_age                   0.0182    0.00247        7.34 2.40e- 13
+
+``` r
+# Evaluation
+set.seed(314159)
+folds <- vfold_cv(train_data, v = 5)
+
+bg_fit_vfold <- bg_wflow %>% 
+  fit_resamples(folds)
+
+# Metrics for model fitted to v-fold train data: 
+bg_train_metrics <- collect_metrics(bg_fit_vfold)
+
+# predictions and metrics for test data
+bg_pred <- predict(bg_fit, test_data) %>% 
+  bind_cols(
+    predict(bg_fit, test_data, type = "pred_int"),
+    test_data %>% dplyr::select(average_rating, users_rated, name)
+  )
+
+bg_test_rmse <- rmse(bg_nrate_pred, truth = average_rating, estimate = .pred)
+bg_test_rsq <- rsq(bg_nrate_pred, truth = average_rating, estimate = .pred)
+
+bg_train_adj_rsq <- glance(bg_fit %>% pull_workflow_fit)$adj.r.squared[1]
+
+# tibble of metrics for both train and test data
+bg_train_test_metrics <- tribble(
+  ~data, ~metric, ~value,
+  "train", "rmse", bg_train_metrics$mean[1],
+  "train", "rsq", bg_train_metrics$mean[2],
+  "test", "rmse", bg_test_rmse$.estimate[1],
+  "test", "rsq", bg_test_rsq$.estimate[1],
+  "train", "adj rsq", bg_train_adj_rsq
+) %>% 
+  pivot_wider(names_from = data, values_from = value)
+
+bg_train_test_metrics
+```
+
+    ## # A tibble: 3 x 3
+    ##   metric  train   test
+    ##   <chr>   <dbl>  <dbl>
+    ## 1 rmse    0.709  0.830
+    ## 2 rsq     0.308  0.108
+    ## 3 adj rsq 0.328 NA
 
 ### Fitting a statistical distribution to the distribution of average\_rating values
 
