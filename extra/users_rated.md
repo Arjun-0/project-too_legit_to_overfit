@@ -222,6 +222,128 @@ predict(bg_nrate_fit, board_games_splitcats) %>%
 
 ![](users_rated_files/figure-gfm/av-n-rating-model-1.png)<!-- -->
 
+### Modelling with all
+
+``` r
+board_games_splitcats <- board_games %>% 
+  mutate(categories = str_split(category, ","))
+
+popular_categories <- board_games_splitcats %>%
+  pull(categories) %>%
+  unlist %>%
+  as_tibble %>%
+  count(value) %>%
+  arrange(desc(n)) %>%
+  head(6) %>%
+  pull(value)
+
+
+board_games_empty <- board_games_splitcats %>%
+  filter(FALSE)
+board_games_popcats <- board_games_empty
+
+for (c in popular_categories) {
+  board_games_popcats <- full_join(
+    board_games_popcats,
+    board_games_splitcats %>%
+      filter(map_lgl(categories, ~c %in% .x)) %>%
+      mutate(category = c)
+  )
+}
+```
+
+    ## Joining, by = c("game_id", "description", "image", "max_players", "max_playtime", "min_age", "min_players", "min_playtime", "name", "playing_time", "thumbnail", "year_published", "artist", "category", "compilation", "designer", "expansion", "family", "mechanic", "publisher", "average_rating", "users_rated", "categories")
+    ## Joining, by = c("game_id", "description", "image", "max_players", "max_playtime", "min_age", "min_players", "min_playtime", "name", "playing_time", "thumbnail", "year_published", "artist", "category", "compilation", "designer", "expansion", "family", "mechanic", "publisher", "average_rating", "users_rated", "categories")
+    ## Joining, by = c("game_id", "description", "image", "max_players", "max_playtime", "min_age", "min_players", "min_playtime", "name", "playing_time", "thumbnail", "year_published", "artist", "category", "compilation", "designer", "expansion", "family", "mechanic", "publisher", "average_rating", "users_rated", "categories")
+    ## Joining, by = c("game_id", "description", "image", "max_players", "max_playtime", "min_age", "min_players", "min_playtime", "name", "playing_time", "thumbnail", "year_published", "artist", "category", "compilation", "designer", "expansion", "family", "mechanic", "publisher", "average_rating", "users_rated", "categories")
+    ## Joining, by = c("game_id", "description", "image", "max_players", "max_playtime", "min_age", "min_players", "min_playtime", "name", "playing_time", "thumbnail", "year_published", "artist", "category", "compilation", "designer", "expansion", "family", "mechanic", "publisher", "average_rating", "users_rated", "categories")
+    ## Joining, by = c("game_id", "description", "image", "max_players", "max_playtime", "min_age", "min_players", "min_playtime", "name", "playing_time", "thumbnail", "year_published", "artist", "category", "compilation", "designer", "expansion", "family", "mechanic", "publisher", "average_rating", "users_rated", "categories")
+
+``` r
+set.seed(314159)
+bg_split <- initial_split(board_games_popcats, prop = 0.8)
+train_data <- training(bg_split)
+test_data <- testing(bg_split)
+
+
+bg_rec <- recipe(
+  average_rating ~ users_rated + category + year_published + playing_time,
+  data = train_data
+) %>% 
+  step_log(users_rated)
+
+bg_model <- linear_reg() %>% 
+  set_engine("lm")
+
+bg_wflow <- workflow() %>% 
+  add_model(bg_model) %>% 
+  add_recipe(bg_rec)
+
+bg_fit <- bg_wflow %>%
+  fit(data = train_data)
+
+bg_fit_tidy <- tidy(bg_fit)
+
+bg_fit_tidy
+```
+
+    ## # A tibble: 9 x 5
+    ##   term                       estimate std.error statistic   p.value
+    ##   <chr>                         <dbl>     <dbl>     <dbl>     <dbl>
+    ## 1 (Intercept)             -50.8       1.49         -34.2  5.30e-237
+    ## 2 users_rated               0.208     0.00621       33.5  5.62e-229
+    ## 3 categoryEconomic          0.329     0.0304        10.8  5.06e- 27
+    ## 4 categoryFantasy           0.230     0.0266         8.65 6.24e- 18
+    ## 5 categoryFighting          0.327     0.0296        11.0  4.56e- 28
+    ## 6 categoryScience Fiction   0.311     0.0305        10.2  3.70e- 24
+    ## 7 categoryWargame           0.921     0.0240        38.3  3.08e-292
+    ## 8 year_published            0.0279    0.000742      37.5  3.34e-281
+    ## 9 playing_time              0.0000346 0.0000103      3.35 8.03e-  4
+
+``` r
+# Evaluation
+set.seed(314159)
+folds <- vfold_cv(train_data, v = 5)
+
+bg_fit_vfold <- bg_wflow %>% 
+  fit_resamples(folds)
+
+# Metrics for model fitted to v-fold train data: 
+bg_train_metrics <- collect_metrics(bg_fit_vfold)
+
+# predictions and metrics for test data
+bg_pred <- predict(bg_fit, test_data) %>% 
+  bind_cols(
+    predict(bg_fit, test_data, type = "pred_int"),
+    test_data %>% dplyr::select(average_rating, users_rated, name)
+  )
+
+bg_test_rmse <- rmse(bg_nrate_pred, truth = average_rating, estimate = .pred)
+bg_test_rsq <- rsq(bg_nrate_pred, truth = average_rating, estimate = .pred)
+
+bg_train_adj_rsq <- glance(bg_fit %>% pull_workflow_fit)$adj.r.squared[1]
+
+# tibble of metrics for both train and test data
+bg_train_test_metrics <- tribble(
+  ~data, ~metric, ~value,
+  "train", "rmse", bg_train_metrics$mean[1],
+  "train", "rsq", bg_train_metrics$mean[2],
+  "test", "rmse", bg_test_rmse$.estimate[1],
+  "test", "rsq", bg_test_rsq$.estimate[1],
+  "train", "adj rsq", bg_train_adj_rsq
+) %>% 
+  pivot_wider(names_from = data, values_from = value)
+
+bg_train_test_metrics
+```
+
+    ## # A tibble: 3 x 3
+    ##   metric  train   test
+    ##   <chr>   <dbl>  <dbl>
+    ## 1 rmse    0.712  0.830
+    ## 2 rsq     0.303  0.108
+    ## 3 adj rsq 0.323 NA
+
 ### Fitting a statistical distribution to the distribution of average\_rating values
 
 ``` r
@@ -406,17 +528,12 @@ probability distribution of average\_rating
 ``` r
 # eval = FALSE as code not yet functioning
 
-bg_rating_rec <- recipe(
-  average_rating ~ ., 
-  data = train_data
-) %>% 
-  step_discretize(num_breaks = 10)
 
 # Unfinished
 ## Is this the right way of going about it? need to look in to this more
 
-#Feedback from Mine:
+#Feedback:
 ##in predict() can have confidence interval for each value vs the average - this will give some indication of distribution around the line. Not necessarily good idea to use sd to predict normal distribution as then you are imposing the distribution (guessing it) rather than obtaining it. 
 #Can say in project that this is something we could do further (predicting distribution) if give reasons, even if don't necessarily do it. 
-#--> something about estimating a prior; bayesian distributions
+#estimating a prior; bayesian distributions
 ```

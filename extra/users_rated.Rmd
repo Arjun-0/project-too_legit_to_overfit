@@ -149,6 +149,101 @@ predict(bg_nrate_fit, board_games_splitcats) %>%
   scale_x_log10()
 ```
 
+### Modelling with all
+
+```{r from-bruce}
+board_games_splitcats <- board_games %>% 
+  mutate(categories = str_split(category, ","))
+
+popular_categories <- board_games_splitcats %>%
+  pull(categories) %>%
+  unlist %>%
+  as_tibble %>%
+  count(value) %>%
+  arrange(desc(n)) %>%
+  head(6) %>%
+  pull(value)
+
+
+board_games_empty <- board_games_splitcats %>%
+  filter(FALSE)
+board_games_popcats <- board_games_empty
+
+for (c in popular_categories) {
+  board_games_popcats <- full_join(
+    board_games_popcats,
+    board_games_splitcats %>%
+      filter(map_lgl(categories, ~c %in% .x)) %>%
+      mutate(category = c)
+  )
+}
+```
+
+```{r model-with-all}
+set.seed(314159)
+bg_split <- initial_split(board_games_popcats, prop = 0.8)
+train_data <- training(bg_split)
+test_data <- testing(bg_split)
+
+
+bg_rec <- recipe(
+  average_rating ~ users_rated + category + year_published + playing_time,
+  data = train_data
+) %>% 
+  step_log(users_rated)
+
+bg_model <- linear_reg() %>% 
+  set_engine("lm")
+
+bg_wflow <- workflow() %>% 
+  add_model(bg_model) %>% 
+  add_recipe(bg_rec)
+
+bg_fit <- bg_wflow %>%
+  fit(data = train_data)
+
+bg_fit_tidy <- tidy(bg_fit)
+
+bg_fit_tidy
+
+# Evaluation
+set.seed(314159)
+folds <- vfold_cv(train_data, v = 5)
+
+bg_fit_vfold <- bg_wflow %>% 
+  fit_resamples(folds)
+
+# Metrics for model fitted to v-fold train data: 
+bg_train_metrics <- collect_metrics(bg_fit_vfold)
+
+# predictions and metrics for test data
+bg_pred <- predict(bg_fit, test_data) %>% 
+  bind_cols(
+    predict(bg_fit, test_data, type = "pred_int"),
+    test_data %>% dplyr::select(average_rating, users_rated, name)
+  )
+
+bg_test_rmse <- rmse(bg_nrate_pred, truth = average_rating, estimate = .pred)
+bg_test_rsq <- rsq(bg_nrate_pred, truth = average_rating, estimate = .pred)
+
+bg_train_adj_rsq <- glance(bg_fit %>% pull_workflow_fit)$adj.r.squared[1]
+
+# tibble of metrics for both train and test data
+bg_train_test_metrics <- tribble(
+  ~data, ~metric, ~value,
+  "train", "rmse", bg_train_metrics$mean[1],
+  "train", "rsq", bg_train_metrics$mean[2],
+  "test", "rmse", bg_test_rmse$.estimate[1],
+  "test", "rsq", bg_test_rsq$.estimate[1],
+  "train", "adj rsq", bg_train_adj_rsq
+) %>% 
+  pivot_wider(names_from = data, values_from = value)
+
+bg_train_test_metrics
+```
+
+
+
 ### Fitting a statistical distribution to the distribution of average_rating values
 
 ```{r avge_rating-dist-models}
@@ -230,17 +325,12 @@ Hopefully will then have a model which gives, for each users_rated, a probabilit
 ```{r av-n-rating-distr-model, eval = FALSE}
 # eval = FALSE as code not yet functioning
 
-bg_rating_rec <- recipe(
-  average_rating ~ ., 
-  data = train_data
-) %>% 
-  step_discretize(num_breaks = 10)
 
 # Unfinished
 ## Is this the right way of going about it? need to look in to this more
 
-#Feedback from Mine:
+#Feedback:
 ##in predict() can have confidence interval for each value vs the average - this will give some indication of distribution around the line. Not necessarily good idea to use sd to predict normal distribution as then you are imposing the distribution (guessing it) rather than obtaining it. 
 #Can say in project that this is something we could do further (predicting distribution) if give reasons, even if don't necessarily do it. 
-#--> something about estimating a prior; bayesian distributions
+#estimating a prior; bayesian distributions
 ```
