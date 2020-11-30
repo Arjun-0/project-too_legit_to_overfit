@@ -1,12 +1,12 @@
 ---
-title: "data"
+title: "Data"
 author: "Too Legit to Overfit"
 output: github_document
 ---
 
 ## `board_games.csv`
 
-Each row in the dataset represents a board game on Board Game Geeks, and the dimensions of the dataset are 10,532 x 22.
+Each row in the dataset represents a board game on Board Game Geeks; each column represents a property of the game. The dimensions of the dataset are 10,532 x 22.
 
  - `game_id` - Unique game identifier
  - `description` - A paragraph of text describing the game
@@ -39,4 +39,8 @@ glimpse(board_games)
 
 ## References
 
-Board Game Geek 2019, Board Games Database, electronic dataset, Tidy Tuesdays, viewed 23 October 2020, <https://github.com/rfordatascience/tidytuesday/tree/master/data/2019/2019-03-12>.
+Board Game Geek 2019, _Board Games Database_, electronic dataset, Tidy Tuesdays, viewed 23 October 2020, <https://github.com/rfordatascience/tidytuesday/tree/master/data/2019/2019-03-12>.
+
+Jeto N 2015, _Fitting Distributions_, University of Lisbon, viewed 22 Nov 2020, <http://www.di.fc.ul.pt/~jpn/r/distributions/fitting.html>
+
+Sauer S 2017, _Simple way of plotting normal/logistic/etc. curve_, sebastiansauer.github.io, viewed 22 Nov 2020, <https://sebastiansauer.github.io/plotting_s-curve/>
