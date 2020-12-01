@@ -287,23 +287,26 @@ games_play_pred %>%
 ---
 ## Model statistics
 
-Slopes:
+### Slopes
+
 Single variable: `r round(tidy(games_play_fit)$estimate[2], 3)`
 
 Double variable: `r round(tidy(games_play_all_fit)$estimate[2], 3)`
 
 --
 
-RMSE:
-Single variable: train: `r round(rmse(games_play_pred, truth = average_rating, estimate = .pred)$.estimate, 3)`
+### RMSE
+
+Single variable: train: `r round(rmse(games_play_pred, truth = average_rating, estimate = .pred)$.estimate, 3)`, 
                   test: `r round(collect_metrics(games_play_fit_rs)$mean[1], 3)`
 
-Double variable: train: `r round(rmse(games_play_all_pred, truth = average_rating, estimate = .pred)$.estimate, 3)`
-                  test: `round(r collect_metrics(games_play_all_fit_rs)$mean[1], 3)`
+Double variable: train: `r round(rmse(games_play_all_pred, truth = average_rating, estimate = .pred)$.estimate, 3)`, 
+                  test: `r round(collect_metrics(games_play_all_fit_rs)$mean[1], 3)`
                   
 --
 
-Adjusted R Squared:
+### Adjusted R Squared
+
 Single variable: `r round(glance(games_play_fit %>% pull_workflow_fit())$adj.r.squared[1], 3)`
 
 Double variable: `r round(glance(games_play_all_fit %>% pull_workflow_fit())$adj.r.squared[1], 3)`
