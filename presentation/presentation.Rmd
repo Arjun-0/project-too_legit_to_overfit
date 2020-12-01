@@ -19,6 +19,7 @@ library(tidymodels)
 library(knitr)
 library(here)
 library(xaringanthemer)
+library(scales)
 ```
 
 ```{r setup, include = FALSE}
@@ -200,7 +201,74 @@ board_games %>%
 ---
 
 # Playing time
+```{r first_plot, echo = FALSE}
+board_games %>%
+  filter(playing_time != 0) %>%
+  ggplot(aes(playing_time, average_rating)) +
+  geom_point(alpha = 0.6) +
+  scale_x_log10(labels = format_format(scientific = FALSE)) +
+  xlim(NA, 11000) +
+  theme_minimal() +
+  labs(title = "Average rating against average playing time", x = "Avergage playing time", y = "Average Rating") 
+```
 
+```{r archie_set-up, include = FALSE}
+board_games <- board_games %>%
+  filter(playing_time != 0, min_playtime != 0)
+
+set.seed(1116)
+
+games_split <- initial_split(board_games, prop = 0.8)
+train_data <- training(games_split)
+test_data <- testing(games_split) 
+
+games_lm_mod <- linear_reg() %>%
+  set_engine("lm")
+
+games_play_recipe <- recipe(average_rating ~ playing_time, data = train_data) %>%
+  step_log(all_predictors())
+
+games_play_workflow <- workflow() %>%
+  add_model(games_lm_mod) %>%
+  add_recipe(games_play_recipe)
+
+games_play_fit <- games_play_workflow %>% 
+  fit(data = train_data)
+
+games_play_all_recipe <- recipe(
+  average_rating ~ playing_time + min_playtime,
+  data = train_data
+  ) %>%
+  step_log(all_predictors())
+
+games_play_all_workflow <- workflow() %>%
+  add_model(games_lm_mod) %>%
+  add_recipe(games_play_all_recipe)
+
+games_play_all_fit <- games_play_all_workflow %>%
+  fit(data = train_data)
+
+games_play_pred <- predict(games_play_fit, test_data) %>%
+  bind_cols(test_data)
+
+games_play_all_pred <- predict(games_play_all_fit, test_data) %>%
+  bind_cols(test_data)
+
+predict_both <- games_play_all_pred %>%
+  mutate(.pred_all = .pred, .keep = "unused") %>%
+  right_join(games_play_pred) %>%
+  select(.pred, .pred_all, average_rating, everything())
+```
+---
+```{r model_graph, echo = FALSE}
+games_play_pred %>%
+  ggplot(aes(x = playing_time)) +
+  geom_point(aes(y = average_rating)) +
+  geom_line(aes(y = .pred), colour = "red") +
+  scale_x_log10() +
+  theme_minimal() +
+  labs(title = "Average rating against average playing time", x = "Average Playing Time", y = "Average Rating")
+```
 ---
 
 # Users rated

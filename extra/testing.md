@@ -28,7 +28,8 @@ board_games %>%
   filter(playing_time != 0) %>%
   ggplot(aes(playing_time, average_rating)) +
   geom_point(alpha = 0.6) +
-  scale_x_log10()
+  scale_x_log10() +
+  labs(title = "Average Rating against Playing Time", x = "Playing Time", y = "Average Rating")
 ```
 
 ![](testing_files/figure-gfm/log_scale-1.png)<!-- -->
@@ -119,16 +120,6 @@ games_play_pred %>%
 ![](testing_files/figure-gfm/predict-1.png)<!-- -->
 
 ``` r
-glance(games_play_fit %>% pull_workflow_fit())
-```
-
-    ## # A tibble: 1 x 12
-    ##   r.squared adj.r.squared sigma statistic   p.value    df logLik    AIC    BIC
-    ##       <dbl>         <dbl> <dbl>     <dbl>     <dbl> <dbl>  <dbl>  <dbl>  <dbl>
-    ## 1     0.121         0.121 0.786     1119. 6.46e-230     1 -9585. 19175. 19196.
-    ## # … with 3 more variables: deviance <dbl>, df.residual <int>, nobs <int>
-
-``` r
 # this code is doing the same as above, creating a data frame
 # of the predicted average values from the model with 
 # `playing_time` and `min_playtime`
@@ -140,7 +131,7 @@ games_play_all_pred <- predict(games_play_all_fit, test_data) %>%
 # average rating from the simple model and the model with both
 # variables in one place compared to the actual `average_rating`
 
-games_play_all_pred %>%
+predict_both <- games_play_all_pred %>%
   mutate(.pred_all = .pred, .keep = "unused") %>%
   right_join(games_play_pred) %>%
   select(.pred, .pred_all, average_rating, everything())
@@ -148,24 +139,19 @@ games_play_all_pred %>%
 
     ## Joining, by = c("game_id", "description", "image", "max_players", "max_playtime", "min_age", "min_players", "min_playtime", "name", "playing_time", "thumbnail", "year_published", "artist", "category", "compilation", "designer", "expansion", "family", "mechanic", "publisher", "average_rating", "users_rated")
 
-    ## # A tibble: 2,034 x 24
-    ##    .pred .pred_all average_rating game_id description image max_players
-    ##    <dbl>     <dbl>          <dbl>   <dbl> <chr>       <chr>       <dbl>
-    ##  1  6.42      6.37           6.61       4 When you s… //cf…           4
-    ##  2  6.42      6.37           6.75      10 Elfenland … //cf…           6
-    ##  3  6.33      6.28           7.07      11 Bohnanza i… //cf…           7
-    ##  4  6.42      6.51           7.48      12 Ra is an a… //cf…           5
-    ##  5  6.64      7.04           7.15      18 The robots… //cf…           8
-    ##  6  6.55      6.48           7.44      20 In this ga… //cf…           4
-    ##  7  6.86      6.76           7.14      22 From the 2… //cf…          16
-    ##  8  6.20      6.17           6.04      32 In Bison, … //cf…           2
-    ##  9  6.64      6.56           5.70      37 This odd l… //cf…           4
-    ## 10  6.42      6.37           6.45      44 This game … //cf…           6
-    ## # … with 2,024 more rows, and 17 more variables: max_playtime <dbl>,
-    ## #   min_age <dbl>, min_players <dbl>, min_playtime <dbl>, name <chr>,
-    ## #   playing_time <dbl>, thumbnail <chr>, year_published <dbl>, artist <chr>,
-    ## #   category <chr>, compilation <chr>, designer <chr>, expansion <chr>,
-    ## #   family <chr>, mechanic <chr>, publisher <chr>, users_rated <dbl>
+``` r
+predict_both %>%
+    ggplot(aes(x = playing_time)) +
+  geom_point(aes(y = average_rating)) +
+  geom_line(aes(y = .pred), colour = "red") +
+  geom_line(aes(y = .pred_all), coloiur = "green") +
+  scale_x_log10() +
+  labs(x = "Average Playing Time", y = "Average Rating")
+```
+
+    ## Warning: Ignoring unknown parameters: coloiur
+
+![](testing_files/figure-gfm/predict-2.png)<!-- -->
 
 ## Evaluating my models
 
@@ -196,19 +182,6 @@ rmse(games_play_all_pred, average_rating, .pred)
 #evaluating my average_rating ~ playing_time + min_playtime model using chi squared and root mean square error
 ```
 
-``` r
-set.seed(450)
-
-folds <- vfold_cv(train_data, v = 50)
-
-# fit resampling
-
-set.seed(451)
-
-games_play_fit_rs <- games_play_workflow %>%
-  fit_resamples(folds)
-```
-
     ## 
     ## Attaching package: 'rlang'
 
@@ -229,9 +202,7 @@ games_play_fit_rs <- games_play_workflow %>%
     ## 
     ##     data_frame
 
-``` r
-collect_metrics(games_play_fit_rs)
-```
+Evaluating my model with only `playing_time` variable  
 
     ## # A tibble: 2 x 6
     ##   .metric .estimator  mean     n std_err .config             
@@ -239,12 +210,13 @@ collect_metrics(games_play_fit_rs)
     ## 1 rmse    standard   0.784    50 0.00800 Preprocessor1_Model1
     ## 2 rsq     standard   0.127    50 0.00722 Preprocessor1_Model1
 
-``` r
-games_play_all_fit_rs <- games_play_all_workflow %>%
-  fit_resamples(folds)
+    ## # A tibble: 1 x 12
+    ##   r.squared adj.r.squared sigma statistic   p.value    df logLik    AIC    BIC
+    ##       <dbl>         <dbl> <dbl>     <dbl>     <dbl> <dbl>  <dbl>  <dbl>  <dbl>
+    ## 1     0.121         0.121 0.786     1119. 6.46e-230     1 -9585. 19175. 19196.
+    ## # … with 3 more variables: deviance <dbl>, df.residual <int>, nobs <int>
 
-collect_metrics(games_play_all_fit_rs)
-```
+evaluating my model with `playing_time` and `min_playtime` variables
 
     ## # A tibble: 2 x 6
     ##   .metric .estimator  mean     n std_err .config             
@@ -252,6 +224,12 @@ collect_metrics(games_play_all_fit_rs)
     ## 1 rmse    standard   0.770    50 0.00801 Preprocessor1_Model1
     ## 2 rsq     standard   0.161    50 0.00746 Preprocessor1_Model1
 
-We can see from comparing the 2 RMSE and rsq mean values that the model
-that includes `min_playtime` as well as `playing_time` is a better
-model, however this does not mean that either are good models.
+    ## # A tibble: 1 x 12
+    ##   r.squared adj.r.squared sigma statistic   p.value    df logLik    AIC    BIC
+    ##       <dbl>         <dbl> <dbl>     <dbl>     <dbl> <dbl>  <dbl>  <dbl>  <dbl>
+    ## 1     0.153         0.152 0.771      733. 2.43e-293     2 -9435. 18877. 18905.
+    ## # … with 3 more variables: deviance <dbl>, df.residual <int>, nobs <int>
+
+We can see from comparing the 2 RMSE and adjusted r squared mean values
+that the model that includes `min_playtime` as well as `playing_time` is
+a better model, however this does not mean that either are good models.
