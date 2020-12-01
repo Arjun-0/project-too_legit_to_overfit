@@ -5,7 +5,6 @@
     <meta charset="utf-8" />
     <meta name="author" content="Archie Cannon, Arjun Nanning Ramamurthy, Bruce McPhail, Connor Williams" />
     <meta name="date" content="2020-12-01" />
-    <script src="libs/header-attrs-2.5/header-attrs.js"></script>
     <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
     <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
   </head>
@@ -71,6 +70,31 @@ class: center, middle, inverse, title-slide
 |Fighting        |  900|
 |Economic        |  878|
 |Science Fiction |  850|
+
+---
+
+
+
+&lt;img src="presentation_files/figure-html/top-cats-over-time-plot-1.png" width="80%" /&gt;
+---
+
+&lt;img src="presentation_files/figure-html/yeet-1.png" width="80%" /&gt;
+
+Note that each of these vertical lines represents one of the 6 categories
+---
+
+
+```
+## # A tibble: 6 x 5
+##   term                    estimate std.error statistic   p.value
+##   &lt;chr&gt;                      &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
+## 1 (Intercept)                6.26     0.0151    414.   0.       
+## 2 categoryEconomic           0.314    0.0317      9.89 5.94e- 23
+## 3 categoryFantasy            0.267    0.0281      9.52 2.22e- 21
+## 4 categoryFighting           0.333    0.0314     10.6  4.26e- 26
+## 5 categoryScience Fiction    0.229    0.0321      7.14 1.02e- 12
+## 6 categoryWargame            0.520    0.0237     21.9  1.58e-103
+```
 
 ---
 
