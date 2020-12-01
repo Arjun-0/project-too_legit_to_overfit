@@ -22,6 +22,7 @@ library(knitr)
 library(here)
 library(xaringanthemer)
 library(fitdistrplus)
+library(scales)
 ```
 
 ```{r setup, include = FALSE}
@@ -71,6 +72,89 @@ popular_categories <- pull(popular_categories, value)
 ```
 
 ---
+```{r filter-top-cats-alt, echo = FALSE, warning = FALSE}
+board_games_topcats <- board_games_splitcats %>% 
+  filter(map_lgl(categories, ~any(popular_categories %in% .x)))
+```
+```{r top-cats-over-time, message = FALSE, warning = FALSE, echo = FALSE}
+av_annual_rating <- function(df, cat = NULL) {
+  {if(!is.null(cat)) {
+    df %>% filter(map_lgl(categories, ~cat %in% .x))
+  } else {
+    df
+  }} %>% 
+  group_by(year_published) %>% 
+  summarise(av_annual_rating = sum(average_rating * users_rated) / sum(users_rated))
+}
+# finds average rating (of a category (cat) if given) of board games in dataframe given (df) for each year in which a board game of that category was published. Output is a dataframe. df must have columns `year published`, `categories` (a `list` of categories), `average_rating` and `year_published`. 
+
+cats <- map(popular_categories, ~av_annual_rating(df = board_games_topcats, cat = .))
+
+cat_ratings <- reduce(cats, ~full_join(.x,.y, by = "year_published")) %>% 
+  arrange(year_published)
+
+if(any(is.na(popular_categories))) {
+  popular_categories[[which(is.na(popular_categories))]] <- "not_categorised"
+} 
+
+names(cat_ratings) <- c("year_published", popular_categories)
+```
+
+```{r top-cats-over-time-plot, warning = FALSE, echo = FALSE, message = FALSE}
+cat_ratings %>% 
+  pivot_longer(cols = 2:ncol(cat_ratings), names_to = "category", values_to = "av_rating") %>% 
+  ggplot(aes(x = year_published, y = av_rating, colour = category)) + 
+  geom_line() +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_wrap(~ category) +
+  labs(
+    x = "Year published", 
+    y = "Mean annual category rating", 
+    colour = "Category",
+    title = "Average ratings plotted over year published",
+    subtitle = "Faceted by the 6 most popular categories"
+  ) + 
+  scale_color_viridis_d() +
+  theme_minimal()
+```
+---
+
+```{r yeet, echo = FALSE, warning = FALSE, message = FALSE}
+board_games_empty <- board_games_splitcats %>%
+  filter(FALSE)
+board_games_popcats <- board_games_empty
+
+for (c in popular_categories) {
+  board_games_popcats <- full_join(
+    board_games_popcats,
+    board_games_splitcats %>%
+      filter(map_lgl(categories, ~c %in% .x)) %>%
+      mutate(category = c)
+  )
+}
+
+cat_fit <- linear_reg() %>%
+  set_engine("lm") %>%
+  fit(average_rating ~ category, data = board_games_popcats)
+
+cat_fit_aug <- augment(cat_fit$fit)
+
+ggplot(cat_fit_aug, mapping = aes(x = .fitted, y = .resid)) +
+  geom_point(alpha = 0.5, aes(color = category)) +
+  geom_hline(yintercept = 0, color = "gray", lty = "dashed") +
+  labs(x = "Predicted rating", y = "Residuals",
+       title = "Plot of the residuals using only the 6 categories") +
+  theme_minimal()
+```
+
+Note that each of these vertical lines represents one of the 6 categories
+---
+
+```{r looking-at-rsquared, echo = FALSE}
+tidy(cat_fit)
+```
+
+---
 
 # Year published
 
@@ -107,7 +191,7 @@ board_games %>%
     y = rating
   )) +
   geom_line() +
-	geom_smooth(method = "lm") +
+	geom_smooth(method = "lm", se = FALSE) +
   theme_minimal() +
   labs(
     x = "Year Published",
@@ -120,7 +204,109 @@ board_games %>%
 ---
 
 # Playing time
+```{r first-plot, echo = FALSE}
+board_games %>%
+  filter(playing_time != 0) %>%
+  ggplot(aes(playing_time, average_rating)) +
+  geom_point(alpha = 0.6) +
+  scale_x_log10(labels = format_format(scientific = FALSE)) +
+  xlim(NA, 11000) +
+  theme_minimal() +
+  labs(title = "Average rating against average playing time", x = "Avergage playing time", y = "Average Rating") 
+```
 
+```{r archie-set-up, echo = FALSE, include = FALSE}
+board_games <- board_games %>%
+  filter(playing_time != 0, min_playtime != 0)
+
+set.seed(1116)
+
+games_split <- initial_split(board_games, prop = 0.8)
+train_data <- training(games_split)
+test_data <- testing(games_split) 
+
+games_lm_mod <- linear_reg() %>%
+  set_engine("lm")
+
+games_play_recipe <- recipe(average_rating ~ playing_time, data = train_data) %>%
+  step_log(all_predictors())
+
+games_play_workflow <- workflow() %>%
+  add_model(games_lm_mod) %>%
+  add_recipe(games_play_recipe)
+
+games_play_fit <- games_play_workflow %>% 
+  fit(data = train_data)
+
+games_play_all_recipe <- recipe(
+  average_rating ~ playing_time + min_playtime,
+  data = train_data
+  ) %>%
+  step_log(all_predictors())
+
+games_play_all_workflow <- workflow() %>%
+  add_model(games_lm_mod) %>%
+  add_recipe(games_play_all_recipe)
+
+games_play_all_fit <- games_play_all_workflow %>%
+  fit(data = train_data)
+
+games_play_pred <- predict(games_play_fit, test_data) %>%
+  bind_cols(test_data)
+
+games_play_all_pred <- predict(games_play_all_fit, test_data) %>%
+  bind_cols(test_data)
+
+predict_both <- games_play_all_pred %>%
+  mutate(.pred_all = .pred, .keep = "unused") %>%
+  right_join(games_play_pred) %>%
+  dplyr::select(.pred, .pred_all, average_rating, everything())
+
+set.seed(450)
+
+folds <- vfold_cv(train_data, v = 5)
+
+set.seed(451)
+
+games_play_fit_rs <- games_play_workflow %>%
+  fit_resamples(folds)
+
+games_play_all_fit_rs <- games_play_all_workflow %>%
+  fit_resamples(folds)
+```
+---
+```{r model-graph, echo = FALSE}
+games_play_pred %>%
+  ggplot(aes(x = playing_time)) +
+  geom_point(aes(y = average_rating)) +
+  geom_line(aes(y = .pred), colour = "red") +
+  scale_x_log10() +
+  theme_minimal() +
+  labs(title = "Average rating against average playing time", x = "Average Playing Time", y = "Average Rating")
+```
+---
+## Model statistics
+
+Slopes:
+Single variable: `r round(tidy(games_play_fit)$estimate[2], 3)`
+
+Double variable: `r round(tidy(games_play_all_fit)$estimate[2], 3)`
+
+--
+
+RMSE:
+Single variable: train: `r round(rmse(games_play_pred, truth = average_rating, estimate = .pred)$.estimate, 3)`
+                  test: `r round(collect_metrics(games_play_fit_rs)$mean[1], 3)`
+
+Double variable: train: `r round(rmse(games_play_all_pred, truth = average_rating, estimate = .pred)$.estimate, 3)`
+                  test: `round(r collect_metrics(games_play_all_fit_rs)$mean[1], 3)`
+                  
+--
+
+Adjusted R Squared:
+Single variable: `r round(glance(games_play_fit %>% pull_workflow_fit())$adj.r.squared[1], 3)`
+
+Double variable: `r round(glance(games_play_all_fit %>% pull_workflow_fit())$adj.r.squared[1], 3)`
 ---
 
 # Users rated

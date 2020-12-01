@@ -23,6 +23,12 @@ board_games <- read_csv(here("data/board_games.csv"))
 board_games %>%
   ggplot(aes(playing_time, average_rating)) +
   geom_point(alpha = 0.6)
+
+board_games %>%
+   filter(playing_time < 10) %>%
+  ggplot(aes(playing_time, average_rating)) +
+  geom_point()
+ 
 ```
 
 We can see that this plot is fairly useless as the x axis is stretched very far because there is a game with a playtime of 60000 minutes. To counter this I will log the x axis.
@@ -37,7 +43,8 @@ board_games %>%
   filter(playing_time != 0) %>%
   ggplot(aes(playing_time, average_rating)) +
   geom_point(alpha = 0.6) +
-  scale_x_log10()
+  scale_x_log10() +
+  labs(title = "Average Rating against Playing Time", x = "Playing Time", y = "Average Rating")
 ```
 
 After manipulating the axes and filtering out games with a `playing_time` = 0, we can see that there is a slight positive correlation between the `playing_time` and `average_rating`.
@@ -99,7 +106,6 @@ games_play_all_fit <- games_play_all_workflow %>%
   fit(data = train_data)
 ```
 
-
 ```{r predict}
 # this code is creating a data frame of the predicted
 # average ratings based on the model with only the
@@ -115,8 +121,6 @@ games_play_pred %>%
   scale_x_log10() +
   labs(x = "Average Playing Time", y = "Average Rating")
 
-glance(games_play_fit %>% pull_workflow_fit())
-
 # this code is doing the same as above, creating a data frame
 # of the predicted average values from the model with 
 # `playing_time` and `min_playtime`
@@ -128,10 +132,17 @@ games_play_all_pred <- predict(games_play_all_fit, test_data) %>%
 # average rating from the simple model and the model with both
 # variables in one place compared to the actual `average_rating`
 
-games_play_all_pred %>%
+predict_both <- games_play_all_pred %>%
   mutate(.pred_all = .pred, .keep = "unused") %>%
   right_join(games_play_pred) %>%
   select(.pred, .pred_all, average_rating, everything())
+
+predict_both %>%
+    ggplot(aes(x = playing_time)) +
+  geom_point(aes(y = average_rating)) +
+  geom_line(aes(y = .pred), colour = "red") +
+  scale_x_log10() +
+  labs(x = "Average Playing Time", y = "Average Rating")
 ```
 
 ## Evaluating my models
@@ -147,24 +158,36 @@ rmse(games_play_all_pred, average_rating, .pred)
 #evaluating my average_rating ~ playing_time + min_playtime model using chi squared and root mean square error
 ```
 
-```{r v-fold_validation}
+```{r v-fold_validation, echo = FALSE}
 set.seed(450)
 
 folds <- vfold_cv(train_data, v = 50)
 
-# fit resampling
+# fit re-sampling
 
 set.seed(451)
 
 games_play_fit_rs <- games_play_workflow %>%
   fit_resamples(folds)
 
-collect_metrics(games_play_fit_rs)
-
 games_play_all_fit_rs <- games_play_all_workflow %>%
   fit_resamples(folds)
-
-collect_metrics(games_play_all_fit_rs)
 ```
 
-We can see from comparing the 2 RMSE and rsq mean values that the model that includes `min_playtime` as well as `playing_time` is a better model, however this does not mean that either are good models.
+Evaluating my model with only `playing_time` variable\
+```{r evaluate-first, echo = FALSE}
+collect_metrics(games_play_fit_rs)
+
+glance(games_play_fit %>% pull_workflow_fit())
+```
+
+evaluating my model with `playing_time` and `min_playtime` variables
+
+```{r evaluate-second, echo = FALSE}
+collect_metrics(games_play_all_fit_rs)
+
+glance(games_play_all_fit %>% pull_workflow_fit())
+```
+
+
+We can see from comparing the 2 RMSE and adjusted r squared mean values that the model that includes `min_playtime` as well as `playing_time` is a better model, however this does not mean that either are good models. 

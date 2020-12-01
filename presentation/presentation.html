@@ -73,6 +73,31 @@ class: center, middle, inverse, title-slide
 
 ---
 
+
+
+&lt;img src="presentation_files/figure-html/top-cats-over-time-plot-1.png" width="80%" /&gt;
+---
+
+&lt;img src="presentation_files/figure-html/yeet-1.png" width="80%" /&gt;
+
+Note that each of these vertical lines represents one of the 6 categories
+---
+
+
+```
+## # A tibble: 6 x 5
+##   term                    estimate std.error statistic   p.value
+##   &lt;chr&gt;                      &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
+## 1 (Intercept)                6.26     0.0151    414.   0.       
+## 2 categoryEconomic           0.314    0.0317      9.89 5.94e- 23
+## 3 categoryFantasy            0.267    0.0281      9.52 2.22e- 21
+## 4 categoryFighting           0.333    0.0314     10.6  4.26e- 26
+## 5 categoryScience Fiction    0.229    0.0321      7.14 1.02e- 12
+## 6 categoryWargame            0.520    0.0237     21.9  1.58e-103
+```
+
+---
+
 # Year published
 
 &lt;img src="presentation_files/figure-html/year-published-rating-1.png" width="80%" /&gt;
@@ -89,6 +114,43 @@ class: center, middle, inverse, title-slide
 
 # Playing time
 
+```
+## Scale for 'x' is already present. Adding another scale for 'x', which will
+## replace the existing scale.
+```
+
+```
+## Warning: Removed 4 rows containing missing values (geom_point).
+```
+
+&lt;img src="presentation_files/figure-html/first-plot-1.png" width="80%" /&gt;
+
+
+---
+&lt;img src="presentation_files/figure-html/model-graph-1.png" width="80%" /&gt;
+---
+## Model statistics
+
+Slopes:
+Single variable: 0.314
+
+Double variable: 0.771
+
+--
+
+RMSE:
+Single variable: train: 0.79
+                  test: 0.786
+
+Double variable: train: 0.781
+                  test: `round(r collect_metrics(games_play_all_fit_rs)$mean[1], 3)`
+                  
+--
+
+Adjusted R Squared:
+Single variable: 0.121
+
+Double variable: 0.152
 ---
 
 # Users rated

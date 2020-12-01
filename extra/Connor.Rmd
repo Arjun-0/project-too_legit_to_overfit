@@ -113,8 +113,4 @@ ggplot(cat_fit_aug, mapping = aes(x = .fitted, y = .resid)) +
   geom_point(alpha = 0.5) +
   geom_hline(yintercept = 0, color = "red", lty = "dashed") +
   labs(x = "Predicted rating", y = "Residuals")
-
-glance(cat_fit)
 ```
-
-Stealing from Arjun because I can lol
