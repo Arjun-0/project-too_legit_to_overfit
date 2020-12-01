@@ -72,8 +72,8 @@ board_games <- read_csv(here("data/board_games.csv"))
 ``` r
 board_games_splitcats %>%
   ggplot() +
-  geom_point(aes(x = users_rated, y = average_rating), alpha = 0.5) +
-  scale_x_log10() +
+  geom_point(aes(x = users_rated, y = average_rating), alpha = 0.1) +
+  # scale_x_log10() +
   labs(
   x = "Number of ratings",
   y = "Average ratings",
@@ -627,3 +627,82 @@ probability distribution of average\_rating
 #Can say in project that this is something we could do further (predicting distribution) if give reasons, even if don't necessarily do it. 
 #estimating a prior; bayesian distributions
 ```
+
+### Presentation plan:
+
+#### Relationship between `averege_rating` and `users_rated`
+
+  - average ratings vs number of ratings graph
+
+For low numbers of ratings, there is very high variation in average
+ratings, however as the number of ratings increases, the variation
+reduces significantly, with average ratings being close to 7.5. It
+appears that heavily rated games have tend be well (but not the highest)
+rated. This could be because good games are likely to be played and
+rated more while games that are highest rated are more specialist or
+complicated and so despite being good games, are played by fewer people.
+With data on complexity of the games, this would be something that could
+be explored.
+
+``` r
+board_games_splitcats %>% 
+  filter(rank(desc(average_rating)) <= 10) %>% 
+  arrange(desc(average_rating)) %>% 
+  dplyr::select(name, average_rating)
+```
+
+    ## # A tibble: 10 x 2
+    ##    name                                            average_rating
+    ##    <chr>                                                    <dbl>
+    ##  1 Small World Designer Edition                              9.00
+    ##  2 Kingdom Death: Monster                                    8.93
+    ##  3 Terra Mystica: Big Box                                    8.85
+    ##  4 Last Chance for Victory                                   8.85
+    ##  5 The Greatest Day: Sword, Juno, and Gold Beaches           8.83
+    ##  6 Last Blitzkrieg                                           8.80
+    ##  7 Enemy Action: Ardennes                                    8.76
+    ##  8 Through the Ages: A New Story of Civilization             8.74
+    ##  9 1817                                                      8.71
+    ## 10 Pandemic Legacy: Season 1                                 8.67
+
+Alternatively, it may be that most games are liked by some and disliked
+by others (after all, games are definitely a matter of taste) in such a
+way that given a high enough number of ratings, all games would tend to
+have an average rating close to 7.5, but that a small sample size for
+calculating the average\_rating means that ratings vary more.
+
+#### Distribution of average ratings
+
+In fact, if we look at the distribution of average ratings, we can see
+that it is very close to a normal distribution. - average\_rating
+density plot with normal (without logistic)
+
+Were games to theoretically all have the same mean rating, then the
+central limit theorem tells us that we would expect a normal
+distribution.
+
+Alternatively, it may be that the quality of a game is in general
+normally distributed (rather than being due to variation in samples)
+
+\~\~\~\~\~\~ \[How would we know/determine which of the two reasons are
+correct, ie. whether games tend to in general have a similar rating
+(given enough players) vs. whether the game quality acctually varies
+vs. whether a more rated game tends to be rated \~7.5 because of the
+number of people who end up playingit, etc.?\]
+
+#### Predicting the average\_rating from users\_rated
+
+  - graph of average\_rating vs. users\_rated with model fitted
+  - Model statistics (rmse, rsq)
+
+To predict average\_rating from users\_rated, we first take the log of
+users\_rated to reduce the skew, and then fit a regression line. As
+seen, there is a slight positive correlation between log(users\_rated)
+and average\_rating meaning that games with few ratings are on average
+very poorly rated, while any game with a reasonable number of ratings is
+rated on average fairly similarly.
+
+\~\~\~\~\~\[should I put numerical equation interpretation in here?\]
+
+However, it is clear that this relationship is not very strong, since
+the RMSE values (give) values are quite high and RSQ quite low.
