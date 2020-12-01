@@ -6,11 +6,9 @@ institute: "University of Edinburgh"
 date: "`r Sys.Date()`"
 output:
   xaringan::moon_reader:
-    # css: xaringan-themer.css
     lib_dir: libs
     nature:
       ratio: "16:9"
-      # highlightStyle: solarized-dark
       highlightLines: true
       countIncrementalSlides: false
 ---
@@ -26,7 +24,6 @@ library(pander)
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(fig.retina = 3, dpi = 300, fig.width = 6, fig.asp = 0.618, out.width = "80%")
-style_solarized_dark()
 ```
 
 ```{r r-squared, echo = FALSE}
@@ -129,6 +126,49 @@ board_games %>%
 ---
 
 # Interesting observations
+
+```{r popular-categories-year-published, echo = FALSE, message = FALSE}
+board_games_splitcats <- board_games %>% 
+  mutate(categories = str_split(category, ","))
+
+popular_categories <- board_games_splitcats %>%
+  pull(categories) %>%
+  unlist %>%
+  as_tibble %>%
+  count(value) %>%
+  arrange(desc(n)) %>%
+  head(6) %>%
+  pull(value)
+
+board_games_empty <- board_games_splitcats %>%
+  filter(FALSE)
+board_games_popcats <- board_games_empty
+
+for (c in popular_categories) {
+  board_games_popcats <- full_join(
+    board_games_popcats,
+    board_games_splitcats %>%
+      filter(map_lgl(categories, ~c %in% .x)) %>%
+      mutate(category = c)
+  )
+}
+
+board_games_popcats %>%
+  group_by(category, year_published) %>%
+  summarise(count = n()) %>%
+  ggplot(aes(
+    x = year_published,
+    y = count,
+    color = category
+  )) +
+  geom_line() +
+  theme_minimal() +
+  labs(
+    x = "Year Published",
+    y = "Number of Games",
+    color = "Category"
+  )
+```
 
 ---
 
