@@ -343,6 +343,22 @@ ppcomp(list(fit_n, fit_ln, fit_l, fit_g), legendtext = plot.legend, plotstyle = 
 gofstat(list(fit_n, fit_ln, fit_g, fit_l), fitnames = c("norm", "lnorm", "gamma", "logis"))
 ```
 
+```{r avge_rating-dist-models-2}
+my_data <- board_games_splitcats$average_rating
+
+fit <- function(data, distr) {
+  fit <- fitdist(data, distr)
+  
+  print(summary(fit))
+  
+  return(fit)
+}
+
+fit_n  <- fit(my_data, "norm")
+
+gofstat(fit_n, fitnames = "norm")
+```
+
 ```{r avge_rating-dist-plot}
 sech <- function(x) {
   1 / cosh(x)
@@ -376,6 +392,25 @@ board_games_splitcats %>%
     subtitle = "red = normal; orange = logistic"
   )
 ```
+
+
+```{r notes, eval = FALSE}
+
+```
+
+```{r try}
+paste0(
+  "$$R^2=",
+  round(122.222323, 3),
+  ",R_{adj}^2=",
+  round(3.14159, 3),
+  ".$$"
+  )
+```
+
+
+
+$ = 2$
 
 ### Modelling distribution of average_rating from users_rated
 
@@ -411,20 +446,20 @@ board_games_splitcats %>%
   filter(rank(desc(average_rating)) <= 10) %>% 
   arrange(desc(average_rating)) %>% 
   dplyr::select(name, average_rating)
-
 ```
 
-Alternatively, it may be that most games are liked by some and disliked by others (after all, games are definitely a matter of taste) in such a way that given a high enough number of ratings, all games would tend to have an average rating close to 7.5, but that a small sample size for calculating the average_rating means that ratings vary more. 
+Alternatively, it may be that most games are liked by some and disliked by others (after all, games are definitely a matter of taste) in such a way that given a high enough number of ratings, all games would tend to have an average rating close to ??[value]7.5, but that a small sample size for calculating the average_rating means that ratings vary more. 
 
 #### Distribution of average ratings
 In fact, if we look at the distribution of average ratings, we can see that it is very close to a normal distribution. 
+
 - average_rating density plot with normal (without logistic)
 
 Were games to theoretically all have the same mean rating, then the central limit theorem tells us that we would expect a normal distribution. 
 
 Alternatively, it may be that the quality of a game is in general normally distributed (rather than being due to variation in samples)
 
-~~~~~~ [How would we know/determine which of the two reasons are correct, ie. whether games tend to in general have a similar rating (given enough players) vs. whether the game quality acctually varies vs. whether a more rated game tends to be rated ~7.5 because of the number of people who end up playingit, etc.?]
+~~~~~~ [How would we know/determine which of the two reasons are correct, ie. whether games tend to in general have a similar rating (given enough players) vs. whether the game quality acctually varies vs. whether a more rated game tends to be rated ~??[value]7.5 because of the number of people who end up playingit, etc.?]
 
 #### Predicting the average_rating from users_rated
 - graph of average_rating vs. users_rated with model fitted

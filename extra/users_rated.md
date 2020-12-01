@@ -565,6 +565,46 @@ gofstat(list(fit_n, fit_ln, fit_g, fit_l), fitnames = c("norm", "lnorm", "gamma"
     ## Bayesian Information Criterion 26491.77 27491.77 27048.37 26508.23
 
 ``` r
+my_data <- board_games_splitcats$average_rating
+
+fit <- function(data, distr) {
+  fit <- fitdist(data, distr)
+  
+  print(summary(fit))
+  
+  return(fit)
+}
+
+fit_n  <- fit(my_data, "norm")
+```
+
+    ## Fitting of the distribution ' norm ' by maximum likelihood 
+    ## Parameters : 
+    ##       estimate  Std. Error
+    ## mean 6.3708560 0.008285693
+    ## sd   0.8503236 0.005858833
+    ## Loglikelihood:  -13236.62   AIC:  26477.24   BIC:  26491.77 
+    ## Correlation matrix:
+    ##      mean sd
+    ## mean    1  0
+    ## sd      0  1
+
+``` r
+gofstat(fit_n, fitnames = "norm")
+```
+
+    ## Goodness-of-fit statistics
+    ##                                    norm
+    ## Kolmogorov-Smirnov statistic 0.01661679
+    ## Cramer-von Mises statistic   0.78956749
+    ## Anderson-Darling statistic   6.26348822
+    ## 
+    ## Goodness-of-fit criteria
+    ##                                    norm
+    ## Akaike's Information Criterion 26477.24
+    ## Bayesian Information Criterion 26491.77
+
+``` r
 sech <- function(x) {
   1 / cosh(x)
 }
@@ -599,6 +639,25 @@ board_games_splitcats %>%
 ```
 
 ![](users_rated_files/figure-gfm/avge_rating-dist-plot-1.png)<!-- -->
+
+``` r
+The normal distribution fitted to `average_rating` is given by
+`r $average_rating \approx ~ N($ round(fit_n$estimate[1], 2) $,$ round(fit_n\$estimate[2], 2) $^2)$`
+```
+
+``` r
+paste0(
+  "$$R^2=",
+  round(122.222323, 3),
+  ",R_{adj}^2=",
+  round(3.14159, 3),
+  ".$$"
+  )
+```
+
+    ## [1] "$$R^2=122.222,R_{adj}^2=3.142.$$"
+
+$ = 2$
 
 ### Modelling distribution of average\_rating from users\_rated
 
@@ -668,14 +727,15 @@ board_games_splitcats %>%
 Alternatively, it may be that most games are liked by some and disliked
 by others (after all, games are definitely a matter of taste) in such a
 way that given a high enough number of ratings, all games would tend to
-have an average rating close to 7.5, but that a small sample size for
-calculating the average\_rating means that ratings vary more.
+have an average rating close to ??\[value\]7.5, but that a small sample
+size for calculating the average\_rating means that ratings vary more.
 
 #### Distribution of average ratings
 
 In fact, if we look at the distribution of average ratings, we can see
-that it is very close to a normal distribution. - average\_rating
-density plot with normal (without logistic)
+that it is very close to a normal distribution.
+
+  - average\_rating density plot with normal (without logistic)
 
 Were games to theoretically all have the same mean rating, then the
 central limit theorem tells us that we would expect a normal
@@ -687,8 +747,8 @@ normally distributed (rather than being due to variation in samples)
 \~\~\~\~\~\~ \[How would we know/determine which of the two reasons are
 correct, ie. whether games tend to in general have a similar rating
 (given enough players) vs. whether the game quality acctually varies
-vs. whether a more rated game tends to be rated \~7.5 because of the
-number of people who end up playingit, etc.?\]
+vs. whether a more rated game tends to be rated \~??\[value\]7.5
+because of the number of people who end up playingit, etc.?\]
 
 #### Predicting the average\_rating from users\_rated
 

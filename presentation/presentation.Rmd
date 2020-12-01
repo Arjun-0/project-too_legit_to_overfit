@@ -11,6 +11,8 @@ output:
       ratio: "16:9"
       highlightLines: true
       countIncrementalSlides: false
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r load-packages, include = FALSE}
@@ -19,6 +21,7 @@ library(tidymodels)
 library(knitr)
 library(here)
 library(xaringanthemer)
+library(fitdistrplus)
 ```
 
 ```{r setup, include = FALSE}
@@ -121,6 +124,178 @@ board_games %>%
 ---
 
 # Users rated
+
+```{r av-against-num-plots, echo = FALSE, message = FALSE}
+# average_rating against users_rated
+board_games_splitcats %>%
+  ggplot() +
+  geom_point(aes(x = users_rated, y = average_rating), alpha = 0.1) +
+  labs(
+  x = "Number of ratings",
+  y = "Average ratings",
+  title = "Number of ratings against average rating"
+  ) + 
+  theme_minimal()
+```
+
+---
+
+## Top 10 highest rated games
+
+```{r top-rated-games, echo = FALSE, message = FALSE}
+board_games_splitcats %>% 
+  filter(rank(desc(average_rating)) <= 10) %>% 
+  arrange(desc(average_rating)) %>% 
+  dplyr::select(name, average_rating) %>% 
+  kable()
+```
+
+---
+
+```{r avge_rating-dist-models, include = FALSE}
+my_data <- board_games_splitcats$average_rating
+
+fitd <- function(data, distr) {
+  fitteddist <- fitdist(data, distr)
+  
+  print(summary(fitteddist))
+  
+  return(fitteddist)
+}
+
+fit_n  <- fitd(my_data, "norm")
+```
+
+```{r avge_rating-dist-plot, echo = FALSE, message = FALSE}
+board_games_splitcats %>% 
+  ggplot(aes(x = average_rating)) + 
+  geom_density() + 
+  stat_function(
+    fun = dnorm, 
+    args = list(
+      mean = fit_n$estimate[1], 
+      sd = fit_n$estimate[2]
+    ), 
+    colour = "red", 
+    alpha = 0.5
+  ) + 
+  theme_minimal() + 
+  labs(
+    title = "Fitting distributions to distribution of average ratings", 
+    subtitle = "Fitted normal distribution in red",
+    x = "Average rating",
+    y = "Density"
+  )
+```
+
+--
+
+```{r normal, echo = FALSE}
+display_normal <- function(mean, sd) {
+  paste0(
+    "$$average\\_rating \\approx \\, \\sim N(",
+    round(mean, 3),
+    ",",
+    round(sd, 3),
+    "^2)",
+    ".$$"
+  )
+}
+```
+
+The normal distribution fitted to `average_rating` is given by `r display_normal(fit_n$estimate[1], fit_n$estimate[2])`
+
+---
+
+## Predicting average rating from number of ratings
+
+```{r av-n-rating-model, echo = FALSE, message = FALSE}
+set.seed(314159)
+bg_nrate_split <- initial_split(board_games_splitcats, prop = 0.8)
+train_data <- training(bg_nrate_split)
+test_data <- testing(bg_nrate_split)
+
+bg_nrate_rec <- recipe(
+  average_rating ~ users_rated,
+  data = train_data
+) %>%
+  step_log(users_rated)
+
+bg_nrate_model <- linear_reg() %>%
+  set_engine("lm")
+
+bg_nrate_wflow <- workflow() %>%
+  add_model(bg_nrate_model) %>%
+  add_recipe(bg_nrate_rec)
+
+bg_nrate_fit <- bg_nrate_wflow %>%
+  fit(data = train_data)
+
+# bg_nrate_fit_tidy <- tidy(bg_nrate_fit)
+
+# Evaluation
+set.seed(314159)
+folds <- vfold_cv(train_data, v = 5)
+
+bg_nrate_fit_vfold <- bg_nrate_wflow %>%
+  fit_resamples(folds)
+
+# Metrics for model fitted to v-fold train data:
+train_metrics <- collect_metrics(bg_nrate_fit_vfold)
+
+# predictions and metrics for test data
+bg_nrate_pred <- predict(bg_nrate_fit, test_data) %>%
+  bind_cols(
+    predict(bg_nrate_fit, test_data, type = "pred_int"),
+    test_data %>% dplyr::select(average_rating, users_rated, name)
+  )
+
+test_rmse <- rmse(bg_nrate_pred, truth = average_rating, estimate = .pred)
+test_rsq <- rsq(bg_nrate_pred, truth = average_rating, estimate = .pred)
+
+# tibble of metrics for both train and test data
+train_test_metrics <- tribble(
+  ~data, ~metric, ~value,
+  "train", "rmse", train_metrics$mean[1],
+  "train", "rsq", train_metrics$mean[2],
+  "test", "rmse", test_rmse$.estimate[1],
+  "test", "rsq", test_rsq$.estimate[1],
+) %>%
+  pivot_wider(names_from = data, values_from = value)
+
+# plot of model on full data
+predict(bg_nrate_fit, board_games_splitcats) %>%
+  bind_cols(
+    predict(bg_nrate_fit, board_games_splitcats, type = "pred_int"),
+    board_games_splitcats %>% dplyr::select(average_rating, users_rated, name)
+  ) %>%
+  ggplot(aes(x = users_rated)) +
+  geom_point(aes(y = average_rating), alpha = 0.2) +
+  geom_line(aes(y = .pred, colour = "red")) +
+  geom_line(aes(y = .pred_upper, colour = "dark red"), linetype = "dashed") +
+  geom_line(aes(y = .pred_lower, colour = "dark red"), linetype = "dashed") +
+  scale_x_log10() + 
+  scale_colour_identity(
+    breaks = c("red", "dark red"),
+    labels = c("Model", "Prediction interval"),
+    guide = "legend"
+  ) +
+  labs(
+    x = "Number of ratings",
+    y = "Average rating",
+    title = "Average rating modelled against number of ratings"
+  ) + 
+  theme_minimal()
+```
+
+---
+
+## Model statistics
+
+```{r nrate-model-stats, echo = FALSE}
+train_test_metrics %>% 
+  kable()
+```
 
 ---
 
