@@ -19,7 +19,6 @@ library(tidymodels)
 library(knitr)
 library(here)
 library(xaringanthemer)
-library(pander)
 ```
 
 ```{r setup, include = FALSE}
@@ -63,7 +62,7 @@ popular_categories <- board_games_splitcats %>%
   head(6)
 
 popular_categories %>%
-  pander
+  knitr::kable()
 
 popular_categories <- pull(popular_categories, value)
 ```
