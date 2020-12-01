@@ -21,6 +21,7 @@ library(tidymodels)
 library(knitr)
 library(here)
 library(xaringanthemer)
+library(pander)
 ```
 
 ```{r setup, include = FALSE}
@@ -51,6 +52,24 @@ glimpse(board_games)
 ---
 
 # Categories
+
+```{r popular-categories, echo = FALSE}
+board_games_splitcats <- board_games %>% 
+  mutate(categories = str_split(category, ","))
+
+popular_categories <- board_games_splitcats %>%
+  pull(categories) %>%
+  unlist %>%
+  as_tibble %>%
+  count(value) %>%
+  arrange(desc(n)) %>%
+  head(6)
+
+popular_categories %>%
+  pander
+
+popular_categories <- pull(popular_categories, value)
+```
 
 ---
 
