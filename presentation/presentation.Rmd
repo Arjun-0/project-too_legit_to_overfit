@@ -6,11 +6,11 @@ institute: "University of Edinburgh"
 date: "`r Sys.Date()`"
 output:
   xaringan::moon_reader:
-    css: xaringan-themer.css
+    # css: xaringan-themer.css
     lib_dir: libs
     nature:
       ratio: "16:9"
-      highlightStyle: solarized-dark
+      # highlightStyle: solarized-dark
       highlightLines: true
       countIncrementalSlides: false
 ---
@@ -74,6 +74,49 @@ popular_categories <- pull(popular_categories, value)
 ---
 
 # Year published
+
+```{r year-published-rating, echo = FALSE, message = FALSE}
+board_games %>%
+  group_by(year_published) %>%
+  summarise(rating = mean(average_rating)) %>%
+  ggplot(aes(
+    x = year_published,
+    y = rating
+  )) +
+  geom_line() +
+  theme_minimal() +
+  labs(
+    x = "Year Published",
+    y = "Rating"
+  )
+```
+
+---
+
+```{r year-published-rating-fit, echo = FALSE}
+year_published_rating_fit <- linear_reg() %>%
+  set_engine("lm") %>%
+  fit(average_rating ~ year_published, data = board_games)
+```
+
+```{r year-published-rating-line, echo = FALSE, message = FALSE}
+board_games %>%
+  group_by(year_published) %>%
+  summarise(rating = mean(average_rating)) %>%
+  ggplot(aes(
+    x = year_published,
+    y = rating
+  )) +
+  geom_line() +
+	geom_smooth(method = "lm") +
+  theme_minimal() +
+  labs(
+    x = "Year Published",
+    y = "Rating"
+  )
+```
+
+`r display_r_squared(year_published_rating_fit)`
 
 ---
 
