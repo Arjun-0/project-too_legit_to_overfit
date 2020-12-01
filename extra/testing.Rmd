@@ -23,6 +23,12 @@ board_games <- read_csv(here("data/board_games.csv"))
 board_games %>%
   ggplot(aes(playing_time, average_rating)) +
   geom_point(alpha = 0.6)
+
+board_games %>%
+   filter(playing_time < 10) %>%
+  ggplot(aes(playing_time, average_rating)) +
+  geom_point()
+ 
 ```
 
 We can see that this plot is fairly useless as the x axis is stretched very far because there is a game with a playtime of 60000 minutes. To counter this I will log the x axis.
