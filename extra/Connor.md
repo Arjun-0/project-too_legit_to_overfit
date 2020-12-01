@@ -9,6 +9,7 @@ library(broom)
 library(pander)
 library(here)
 library(tidymodels)
+library(fitdistrplus)
 ```
 
 ``` r
@@ -154,3 +155,5 @@ glance(cat_fit)
     ##       <dbl>         <dbl> <dbl>     <dbl>     <dbl> <dbl>   <dbl>  <dbl>  <dbl>
     ## 1    0.0540        0.0535 0.825      101. 5.35e-104     5 -10871. 21756. 21805.
     ## # … with 3 more variables: deviance <dbl>, df.residual <int>, nobs <int>
+
+Stealing from Arjun because I can lol

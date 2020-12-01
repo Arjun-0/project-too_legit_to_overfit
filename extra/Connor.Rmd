@@ -11,6 +11,7 @@ library(broom)
 library(pander)
 library(here)
 library(tidymodels)
+library(fitdistrplus)
 ```
 
 ```{r read-data, message = FALSE}
@@ -115,3 +116,5 @@ ggplot(cat_fit_aug, mapping = aes(x = .fitted, y = .resid)) +
 
 glance(cat_fit)
 ```
+
+Stealing from Arjun because I can lol
