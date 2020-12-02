@@ -93,11 +93,13 @@ body, h1, h2, h3, h4, h5, h6 {
 
 ---
 
-&lt;img src="presentation_files/figure-html/yeet-1.png" width="80%" /&gt;
+&lt;img src="presentation_files/figure-html/predicted-rating-residuals-1.png" width="80%" /&gt;
 
 Note that each of these vertical lines represents one of the 6 categories.
 
 ---
+
+### Model
 
 
 ```
@@ -144,25 +146,26 @@ Note that each of these vertical lines represents one of the 6 categories.
 
 ### Slopes
 
-Single variable: `\(0.314\)`
+Single variable: `\(0.314\)`.
 
-Double variable: `\(0.771\)`
-
---
+Double variable: `\(0.771\)`.
 
 ### RMSE
 
-Single variable: `\(RMSE = 0.786\)`
+Single variable:
+training: `\(RMSE = 0.79\)`,
+test: `\(RMSE = 0.786\)`.
 
-Double variable: `\(RMSE = 0.772\)`
-
---
+Double variable:
+training: `\(RMSE = 0.781\)`,
+test: `\(RMSE = 0.772\)`.
 
 ### R Squared
 
 Single variable: `\(R^2=0.121,R_{adj}^2=0.121.\)`
 
 Double variable: `\(R^2=0.153,R_{adj}^2=0.152.\)`
+
 ---
 
 ## Users rated
@@ -197,7 +200,7 @@ Double variable: `\(R^2=0.153,R_{adj}^2=0.152.\)`
 
 
 
-The normal distribution fitted to `average_rating` is given by `$$average\_rating \approx \, \sim N(6.371,0.85^2).$$`
+The normal distribution fitted to `average_rating` is given by `$$Y\sim N(6.371,0.85^2).$$`
 
 ---
 
@@ -210,8 +213,10 @@ The normal distribution fitted to `average_rating` is given by `$$average\_ratin
 ### Model statistics
 
 
-
-`$$RMSE=0.830332576718646,R^2=0.108316281965324.$$`
+|metric |     train|      test|
+|:------|---------:|---------:|
+|rmse   | 0.7909299| 0.8303326|
+|rsq    | 0.1200996| 0.1083163|
 
 ---
 

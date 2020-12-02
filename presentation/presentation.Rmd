@@ -129,13 +129,12 @@ cat_ratings %>%
     title = "Average ratings plotted over year published",
     subtitle = "Faceted by the 6 most popular categories"
   ) + 
-  scale_color_viridis_d() +
   theme_minimal()
 ```
 
 ---
 
-```{r yeet, echo = FALSE, warning = FALSE, message = FALSE}
+```{r predicted-rating-residuals, echo = FALSE, warning = FALSE, message = FALSE}
 board_games_empty <- board_games_splitcats %>%
   filter(FALSE)
 board_games_popcats <- board_games_empty
@@ -166,6 +165,8 @@ ggplot(cat_fit_aug, mapping = aes(x = .fitted, y = .resid)) +
 Note that each of these vertical lines represents one of the 6 categories.
 
 ---
+
+### Model
 
 ```{r looking-at-rsquared, echo = FALSE}
 tidy(cat_fit)
@@ -227,9 +228,9 @@ board_games %>%
   filter(playing_time != 0) %>%
   ggplot(aes(playing_time, average_rating)) +
   geom_point(alpha = 0.6) +
-  scale_x_log10(labels = format_format(scientific = FALSE)) +
-  xlim(NA, 11000) +
+  scale_x_log10() +
   theme_minimal() +
+  theme(plot.margin = unit(c(0,1,0,0), "cm")) +
   labs(title = "Average rating against average playing time", x = "Average playing time", y = "Average Rating") 
 ```
 
@@ -311,25 +312,26 @@ games_play_pred %>%
 
 ### Slopes
 
-Single variable: $`r round(tidy(games_play_fit)$estimate[2], 3)`$
+Single variable: $`r round(tidy(games_play_fit)$estimate[2], 3)`$.
 
-Double variable: $`r round(tidy(games_play_all_fit)$estimate[2], 3)`$
-
---
+Double variable: $`r round(tidy(games_play_all_fit)$estimate[2], 3)`$.
 
 ### RMSE
 
-Single variable: $RMSE = `r round(collect_metrics(games_play_fit_rs)$mean[1], 3)`$
+Single variable:
+training: $RMSE = `r round(rmse(games_play_pred, average_rating, .pred)$.estimate[1], 3)`$,
+test: $RMSE = `r round(collect_metrics(games_play_fit_rs)$mean[1], 3)`$.
 
-Double variable: $RMSE = `r round(collect_metrics(games_play_all_fit_rs)$mean[1], 3)`$
-
---
+Double variable:
+training: $RMSE = `r round(rmse(games_play_all_pred, average_rating, .pred)$.estimate[1], 3)`$,
+test: $RMSE = `r round(collect_metrics(games_play_all_fit_rs)$mean[1], 3)`$.
 
 ### R Squared
 
 Single variable: `r display_r_squared(games_play_fit %>% pull_workflow_fit())`
 
 Double variable: `r display_r_squared(games_play_all_fit %>% pull_workflow_fit())`
+
 ---
 
 ## Users rated
@@ -344,6 +346,7 @@ board_games_splitcats %>%
   y = "Average ratings",
   title = "Number of ratings against average rating"
   ) + 
+  scale_x_log10() +
   theme_minimal()
 ```
 
@@ -406,7 +409,7 @@ board_games_splitcats %>%
 ```{r normal, echo = FALSE}
 display_normal <- function(mean, sd) {
   paste0(
-    "$$average\\_rating \\approx \\, \\sim N(",
+    "$$Y\\sim N(",
     round(mean, 3),
     ",",
     round(sd, 3),
@@ -506,20 +509,9 @@ predict(bg_nrate_fit, board_games_splitcats) %>%
 ### Model statistics
 
 ```{r nrate-model-stats, echo = FALSE}
-# train_test_metrics %>% 
-#   kable()
-display_model_statistics <- function() {
-	paste0(
-		"$$RMSE=",
-		train_test_metrics$test[1],
-		",R^2=",
-		train_test_metrics$test[2],
-		".$$"
-	)
-}
+train_test_metrics %>% 
+  kable()
 ```
-
-`r display_model_statistics()`
 
 ---
 
