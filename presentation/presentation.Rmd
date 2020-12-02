@@ -314,7 +314,9 @@ games_play_pred %>%
 
 Single variable: $`r round(tidy(games_play_fit)$estimate[2], 3)`$.
 
-Double variable: $`r round(tidy(games_play_all_fit)$estimate[2], 3)`$.
+Double variable:
+`playing_time`: $`r round(tidy(games_play_all_fit)$estimate[2], 3)`$,
+`min_playtime`: $`r round(tidy(games_play_all_fit)$estimate[3], 3)`$.
 
 ### RMSE
 
