@@ -629,7 +629,6 @@ bg_train_test_metrics
 
 ---
 
-- Step 1: Make good games
-- Step 2: ???
-- Step 3: Profit.
-
+# Step 1: Make good games
+# Step 2: ???
+# Step 3: Profit.
