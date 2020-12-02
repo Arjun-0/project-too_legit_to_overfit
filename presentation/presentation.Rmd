@@ -565,3 +565,7 @@ board_games_popcats %>%
 ---
 
 ## Conclusions
+
+- Step 1: Make good games
+- Step 2: ???
+- Step 3: Profit.
