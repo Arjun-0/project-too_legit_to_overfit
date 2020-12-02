@@ -4,7 +4,7 @@
     <title>How do Certain Factors Affect the Ratings of Boardgames?</title>
     <meta charset="utf-8" />
     <meta name="author" content="Archie Cannon, Arjun Nanning Ramamurthy, Bruce McPhail, Connor Williams" />
-    <meta name="date" content="2020-12-01" />
+    <script src="libs/header-attrs-2.5/header-attrs.js"></script>
     <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
     <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
   </head>
@@ -16,10 +16,22 @@ class: center, middle, inverse, title-slide
 ## Too Legit to Overfit
 ### Archie Cannon, Arjun Nanning Ramamurthy, Bruce McPhail, Connor Williams
 ### University of Edinburgh
-### 2020-12-01
 
 ---
 
+
+&lt;style type="text/css"&gt;
+@import url('https://fonts.googleapis.com/css2?family=Inconsolata&amp;family=Merriweather&amp;display=swap');
+body, h1, h2, h3, h4, h5, h6 {
+	font-family: 'Merriweather', serif;
+}
+.remark-code.remark-inline-code {
+	font-family: 'Inconsolata', monospace;
+}
+.remark-slide-number {
+  display: none;
+}
+&lt;/style&gt;
 
 
 
@@ -59,28 +71,32 @@ class: center, middle, inverse, title-slide
 
 ---
 
-# Categories
+## Categories
 
 
-|value           |    n|
-|:---------------|----:|
-|Card Game       | 2981|
-|Wargame         | 2034|
-|Fantasy         | 1218|
-|Fighting        |  900|
-|Economic        |  878|
-|Science Fiction |  850|
+|Category        | Number of Games|
+|:---------------|---------------:|
+|Card Game       |            2981|
+|Wargame         |            2034|
+|Fantasy         |            1218|
+|Fighting        |             900|
+|Economic        |             878|
+|Science Fiction |             850|
 
 ---
+
+
 
 
 
 &lt;img src="presentation_files/figure-html/top-cats-over-time-plot-1.png" width="80%" /&gt;
+
 ---
 
 &lt;img src="presentation_files/figure-html/yeet-1.png" width="80%" /&gt;
 
-Note that each of these vertical lines represents one of the 6 categories
+Note that each of these vertical lines represents one of the 6 categories.
+
 ---
 
 
@@ -98,7 +114,7 @@ Note that each of these vertical lines represents one of the 6 categories
 
 ---
 
-# Year published
+## Year Published
 
 &lt;img src="presentation_files/figure-html/year-published-rating-1.png" width="80%" /&gt;
 
@@ -112,51 +128,44 @@ Note that each of these vertical lines represents one of the 6 categories
 
 ---
 
-# Playing time
-
-```
-## Scale for 'x' is already present. Adding another scale for 'x', which will
-## replace the existing scale.
-```
-
-```
-## Warning: Removed 4 rows containing missing values (geom_point).
-```
+## Playing time
 
 &lt;img src="presentation_files/figure-html/first-plot-1.png" width="80%" /&gt;
 
 
+
 ---
+
 &lt;img src="presentation_files/figure-html/model-graph-1.png" width="80%" /&gt;
+
 ---
-## Model statistics
+
+### Model statistics
 
 ### Slopes
 
-Single variable: 0.314
+Single variable: `\(0.314\)`
 
-Double variable: 0.771
+Double variable: `\(0.771\)`
 
 --
 
 ### RMSE
 
-Single variable: train: 0.79, 
-                  test: 0.786
+Single variable: `\(RMSE = 0.786\)`
 
-Double variable: train: 0.781, 
-                  test: 0.772
-                  
+Double variable: `\(RMSE = 0.772\)`
+
 --
 
-### Adjusted R Squared
+### R Squared
 
-Single variable: 0.121
+Single variable: `\(R^2=0.121,R_{adj}^2=0.121.\)`
 
-Double variable: 0.152
+Double variable: `\(R^2=0.153,R_{adj}^2=0.152.\)`
 ---
 
-# Users rated
+## Users rated
 
 &lt;img src="presentation_files/figure-html/av-against-num-plots-1.png" width="80%" /&gt;
 
@@ -165,7 +174,7 @@ Double variable: 0.152
 ## Top 10 highest rated games
 
 
-|name                                            | average_rating|
+|Name                                            | Average Rating|
 |:-----------------------------------------------|--------------:|
 |Small World Designer Edition                    |        9.00392|
 |Kingdom Death: Monster                          |        8.93184|
@@ -192,29 +201,27 @@ The normal distribution fitted to `average_rating` is given by `$$average\_ratin
 
 ---
 
-## Predicting average rating from number of ratings
+## Number of ratings
 
 &lt;img src="presentation_files/figure-html/av-n-rating-model-1.png" width="80%" /&gt;
 
 ---
 
-## Model statistics
+### Model statistics
 
 
-|metric |     train|      test|
-|:------|---------:|---------:|
-|rmse   | 0.7909299| 0.8303326|
-|rsq    | 0.1200996| 0.1083163|
+
+`$$RMSE=0.830332576718646,R^2=0.108316281965324.$$`
 
 ---
 
-# Interesting observations
+## Interesting observations
 
 &lt;img src="presentation_files/figure-html/popular-categories-year-published-1.png" width="80%" /&gt;
 
 ---
 
-# Conclusion
+## Conclusions
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
