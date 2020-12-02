@@ -233,7 +233,7 @@ p2 <- model_and_intervals %>%
 # p1 + p2
 ```
 
-```{r av-n-rating-model-logy}
+```{r av-n-rating-model-logy, eval = FALSE}
 # Now trying tansforming y in model
 set.seed(314159)
 bg_nrate_split <- initial_split(board_games_splitcats, prop = 0.8)

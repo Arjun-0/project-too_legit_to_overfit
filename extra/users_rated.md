@@ -222,6 +222,186 @@ predict(bg_nrate_fit, board_games_splitcats) %>%
 
 ![](users_rated_files/figure-gfm/av-n-rating-model-1.png)<!-- -->
 
+``` r
+set.seed(314159)
+bg_nrate_split <- initial_split(board_games_splitcats, prop = 0.8)
+train_data <- training(bg_nrate_split)
+test_data <- testing(bg_nrate_split)
+
+bg_nrate_rec <- recipe(
+  average_rating ~ users_rated,
+  data = train_data
+) %>% 
+  step_log(users_rated)
+
+bg_nrate_model <- linear_reg() %>% 
+  set_engine("lm")
+
+bg_nrate_wflow <- workflow() %>% 
+  add_model(bg_nrate_model) %>% 
+  add_recipe(bg_nrate_rec)
+
+bg_nrate_fit <- bg_nrate_wflow %>%
+  fit(data = train_data)
+
+bg_nrate_fit_tidy <- tidy(bg_nrate_fit)
+# bg_nrate_fit_aug <- augment(bg_nrate_fit) # Why does this break?
+
+# Evaluation
+set.seed(314159)
+folds <- vfold_cv(train_data, v = 5)
+
+bg_nrate_fit_vfold <- bg_nrate_wflow %>% 
+  fit_resamples(folds)
+
+# Metrics for model fitted to v-fold train data: 
+train_metrics <- collect_metrics(bg_nrate_fit_vfold)
+
+# predictions and metrics for test data
+bg_nrate_pred <- predict(bg_nrate_fit, test_data) %>% 
+  bind_cols(
+    predict(bg_nrate_fit, test_data, type = "pred_int"),
+    test_data %>% dplyr::select(average_rating, users_rated, name)
+  )
+
+test_rmse <- rmse(bg_nrate_pred, truth = average_rating, estimate = .pred)
+test_rsq <- rsq(bg_nrate_pred, truth = average_rating, estimate = .pred)
+
+# tibble of metrics for both train and test data
+train_test_metrics <- tribble(
+  ~data, ~metric, ~value,
+  "train", "rmse", train_metrics$mean[1],
+  "train", "rsq", train_metrics$mean[2],
+  "test", "rmse", test_rmse$.estimate[1],
+  "test", "rsq", test_rsq$.estimate[1],
+) %>% 
+  pivot_wider(names_from = data, values_from = value)
+
+# plot of model on full data
+model_and_intervals <- predict(bg_nrate_fit, board_games_splitcats) %>% 
+  bind_cols(
+    predict(bg_nrate_fit, board_games_splitcats, type = "pred_int"),
+    board_games_splitcats %>% dplyr::select(average_rating, users_rated, name)
+  )
+
+library(patchwork)
+```
+
+    ## 
+    ## Attaching package: 'patchwork'
+
+    ## The following object is masked from 'package:MASS':
+    ## 
+    ##     area
+
+``` r
+p1 <- model_and_intervals %>% 
+  ggplot(aes(x = users_rated)) + 
+  geom_point(aes(y = average_rating), alpha = 0.2) + 
+  geom_line(aes(y = .pred), colour = "red") + 
+  geom_line(aes(y = .pred_upper), colour = "dark red", linetype = "dashed") +
+  geom_line(aes(y = .pred_lower), colour = "dark red", linetype = "dashed") + 
+  scale_x_continuous(trans = "log10")
+
+p2 <- model_and_intervals %>% 
+  ggplot(aes(x = users_rated)) + 
+  geom_point(aes(y = average_rating), alpha = 0.2) + 
+  geom_line(aes(y = .pred), colour = "red") + 
+  geom_line(aes(y = .pred_upper), colour = "dark red", linetype = "dashed") +
+  geom_line(aes(y = .pred_lower), colour = "dark red", linetype = "dashed") + 
+  scale_x_log10() + 
+  scale_y_log10()
+
+# p1 + p2
+```
+
+``` r
+# Now trying tansforming y in model
+set.seed(314159)
+bg_nrate_split <- initial_split(board_games_splitcats, prop = 0.8)
+train_data <- training(bg_nrate_split)
+test_data <- testing(bg_nrate_split)
+
+bg_nrate_rec <- recipe(
+  average_rating ~ users_rated,
+  data = train_data
+) %>% 
+  step_log(users_rated, average_rating)
+
+bg_nrate_model <- linear_reg() %>% 
+  set_engine("lm")
+
+bg_nrate_wflow <- workflow() %>% 
+  add_model(bg_nrate_model) %>% 
+  add_recipe(bg_nrate_rec)
+
+bg_nrate_fit <- bg_nrate_wflow %>%
+  fit(data = train_data)
+
+bg_nrate_fit_tidy <- tidy(bg_nrate_fit)
+# bg_nrate_fit_aug <- augment(bg_nrate_fit) # Why does this break?
+
+# Evaluation
+set.seed(314159)
+folds <- vfold_cv(train_data, v = 5)
+
+bg_nrate_fit_vfold <- bg_nrate_wflow %>% 
+  fit_resamples(folds)
+
+# Metrics for model fitted to v-fold train data: 
+train_metrics <- collect_metrics(bg_nrate_fit_vfold)
+
+# predictions and metrics for test data
+bg_nrate_pred <- predict(bg_nrate_fit, test_data) %>% 
+  bind_cols(
+    predict(bg_nrate_fit, test_data, type = "pred_int"),
+    test_data %>% dplyr::select(average_rating, users_rated, name)
+  )
+
+test_rmse <- rmse(bg_nrate_pred, truth = average_rating, estimate = .pred)
+test_rsq <- rsq(bg_nrate_pred, truth = average_rating, estimate = .pred)
+
+# tibble of metrics for both train and test data
+train_test_metrics_logy <- tribble(
+  ~data, ~metric, ~value,
+  "train", "rmse", train_metrics$mean[1],
+  "train", "rsq", train_metrics$mean[2],
+  "test", "rmse", test_rmse$.estimate[1],
+  "test", "rsq", test_rsq$.estimate[1],
+) %>% 
+  pivot_wider(names_from = data, values_from = value)
+
+# plot of model on full data
+model_and_intervals <- predict(bg_nrate_fit, board_games_splitcats) %>% 
+  bind_cols(
+    predict(bg_nrate_fit, board_games_splitcats, type = "pred_int"),
+    board_games_splitcats %>% dplyr::select(average_rating, users_rated, name)
+  )
+
+p3 <- model_and_intervals %>% 
+  ggplot(aes(x = users_rated)) + 
+  geom_point(aes(y = average_rating), alpha = 0.2) + 
+  geom_line(aes(y = .pred), colour = "red") + 
+  geom_line(aes(y = .pred_upper), colour = "dark red", linetype = "dashed") +
+  geom_line(aes(y = .pred_lower), colour = "dark red", linetype = "dashed") + 
+  scale_x_continuous(trans = "log10")
+
+p4 <- model_and_intervals %>% 
+  ggplot(aes(x = users_rated)) + 
+  geom_point(aes(y = average_rating), alpha = 0.2) + 
+  geom_line(aes(y = .pred), colour = "red") + 
+  geom_line(aes(y = .pred_upper), colour = "dark red", linetype = "dashed") +
+  geom_line(aes(y = .pred_lower), colour = "dark red", linetype = "dashed") + 
+  scale_x_log10() + 
+  scale_y_log10()
+
+p1 + p2 +
+  p3 + p4
+
+train_test_metrics
+train_test_metrics_logy
+```
+
 ### Modelling with all
 
 ``` r
@@ -639,11 +819,6 @@ board_games_splitcats %>%
 ```
 
 ![](users_rated_files/figure-gfm/avge_rating-dist-plot-1.png)<!-- -->
-
-``` r
-The normal distribution fitted to `average_rating` is given by
-`r $average_rating \approx ~ N($ round(fit_n$estimate[1], 2) $,$ round(fit_n\$estimate[2], 2) $^2)$`
-```
 
 ``` r
 paste0(
