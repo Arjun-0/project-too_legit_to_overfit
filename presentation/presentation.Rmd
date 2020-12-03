@@ -346,7 +346,8 @@ board_games_splitcats %>%
   labs(
   x = "Number of ratings",
   y = "Average ratings",
-  title = "Number of ratings against average rating"
+  title = "Average rating against number of ratings",
+  subtitle = "Each point represents one board game"
   ) + 
   scale_x_log10() +
   theme_minimal()
@@ -360,10 +361,11 @@ board_games_splitcats %>%
 board_games_splitcats %>% 
   filter(rank(desc(average_rating)) <= 10) %>% 
   arrange(desc(average_rating)) %>% 
-  dplyr::select(name, average_rating) %>% 
+  dplyr::select(name, average_rating, year_published) %>% 
 	rename(
 		"Name" = name,
-		"Average Rating" = average_rating
+		"Average Rating" = average_rating,
+		"Year Published" = year_published
 	) %>%
   kable()
 ```
@@ -423,7 +425,7 @@ The normal distribution fitted to `average_rating` is given by `r display_normal
 
 ---
 
-## Number of ratings
+## Number of ratings model
 
 ```{r av-n-rating-model, echo = FALSE, message = FALSE}
 set.seed(314159)
@@ -563,6 +565,7 @@ board_games_popcats %>%
 ---
 
 ## Conclusions
+### Model with all variables
 
 ```{r model-with-all, echo = FALSE, message = FALSE}
 set.seed(314159)
