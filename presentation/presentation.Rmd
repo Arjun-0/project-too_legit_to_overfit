@@ -355,23 +355,6 @@ board_games_splitcats %>%
 
 ---
 
-## Top 10 highest rated games
-
-```{r top-rated-games, echo = FALSE, message = FALSE}
-board_games_splitcats %>% 
-  filter(rank(desc(average_rating)) <= 10) %>% 
-  arrange(desc(average_rating)) %>% 
-  dplyr::select(name, average_rating, year_published) %>% 
-	rename(
-		"Name" = name,
-		"Average Rating" = average_rating,
-		"Year Published" = year_published
-	) %>%
-  kable()
-```
-
----
-
 ```{r avge_rating-dist-models, include = FALSE}
 my_data <- board_games_splitcats$average_rating
 
@@ -504,6 +487,23 @@ predict(bg_nrate_fit, board_games_splitcats) %>%
     title = "Average rating modelled against number of ratings"
   ) + 
   theme_minimal()
+```
+
+---
+
+## Top 10 highest rated games
+
+```{r top-rated-games, echo = FALSE, message = FALSE}
+board_games_splitcats %>% 
+  filter(rank(desc(average_rating)) <= 10) %>% 
+  arrange(desc(average_rating)) %>% 
+  dplyr::select(name, average_rating, year_published) %>% 
+	rename(
+		"Name" = name,
+		"Average Rating" = average_rating,
+		"Year Published" = year_published
+	) %>%
+  kable()
 ```
 
 ---
