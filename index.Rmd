@@ -7,31 +7,346 @@ output:
     highlight: pygments
 ---
 
-```{r load-data, echo = FALSE, message = FALSE}
+## Summary
+
+```{r load-packages, include = FALSE}
 library(tidyverse)
+library(tidymodels)
+library(knitr)
 library(here)
+library(fitdistrplus)
+library(glue)
+```
+
+```{r load-data, include = FALSE}
 board_games <- read_csv(here("data/board_games.csv"))
 ```
 
-## Summary
+```{r popular-categories, include = FALSE}
+board_games_splitcats <- board_games %>% 
+  mutate(categories = str_split(category, ","))
 
-Write-up of your project and findings go here. 
-Think of this as the text of your presentation. 
-The length should be roughly 5 minutes when read out loud.
-Although pacing varies, a 5-minute speech is roughly 750 words. 
-To use the word count addin, select the text you want to count the words of (probably this is the 
-Summary section of this document, go to Addins, and select the `Word count` addin).
-This addin counts words using two different algorithms, but the results should be similar and as long as you're in the ballpark of 750 words, you're good! 
-The addin will ignore code chunks and only count the words in prose.
+popular_categories <- board_games_splitcats %>%
+  pull(categories) %>%
+  unlist %>%
+  as_tibble %>%
+  count(value) %>%
+  arrange(desc(n)) %>%
+  head(6)
 
-You can also load your data here and present any analysis results / plots, but I strongly urge you to keep that to a minimum (maybe only the most important graphic, if you have one you can choose). 
-And make sure to hide your code with  `echo = FALSE` unless the point you are trying to make is about the code itself.
-Your results with proper output and graphics go in your presentation, this space is for a brief summary of your project.
+popular_categories %>%
+	rename(
+		"Category" = value,
+		"Number of Games" = n
+	)
+popular_categories <- pull(popular_categories, value)
+```
+```{r filter-top-cats-alt, include = FALSE, warning = FALSE}
+board_games_topcats <- board_games_splitcats %>% 
+  filter(map_lgl(categories, ~any(popular_categories %in% .x)))
+```
+
+```{r top-cats-over-time, include = FALSE}
+av_annual_rating <- function(df, cat = NULL) {
+  {if(!is.null(cat)) {
+    df %>% filter(map_lgl(categories, ~cat %in% .x))
+  } else {
+    df
+  }} %>% 
+  group_by(year_published) %>% 
+  summarise(av_annual_rating = sum(average_rating * users_rated) / sum(users_rated))
+}
+
+cats <- map(popular_categories, ~av_annual_rating(df = board_games_topcats, cat = .))
+
+cat_ratings <- reduce(cats, ~full_join(.x,.y, by = "year_published")) %>% 
+  arrange(year_published)
+
+if(any(is.na(popular_categories))) {
+  popular_categories[[which(is.na(popular_categories))]] <- "not_categorised"
+} 
+
+names(cat_ratings) <- c("year_published", popular_categories)
+```
+
+```{r predicted-rating-residuals, include = FALSE}
+board_games_empty <- board_games_splitcats %>%
+  filter(FALSE)
+board_games_popcats <- board_games_empty
+
+for (c in popular_categories) {
+  board_games_popcats <- full_join(
+    board_games_popcats,
+    board_games_splitcats %>%
+      filter(map_lgl(categories, ~c %in% .x)) %>%
+      mutate(category = c)
+  )
+}
+
+cat_fit <- linear_reg() %>%
+  set_engine("lm") %>%
+  fit(average_rating ~ category, data = board_games_popcats)
+
+cat_fit_aug <- augment(cat_fit$fit)
+```
+
+``` {r calc-stats, include = FALSE}
+ncats <- board_games_splitcats %>% pull(categories) %>% unlist() %>% as_tibble() %>% filter(!is.na(value)) %>% n_distinct()
+```
+```{r year-published-rating-fit, include = FALSE}
+year_published_rating_fit <- linear_reg() %>%
+  set_engine("lm") %>%
+  fit(average_rating ~ year_published, data = board_games)
+```
+
+```{r playing-time-model, include = FALSE}
+board_games <- board_games %>%
+  filter(playing_time != 0, min_playtime != 0)
+
+set.seed(1116)
+
+games_split <- initial_split(board_games, prop = 0.8)
+train_data <- training(games_split)
+test_data <- testing(games_split) 
+
+games_lm_mod <- linear_reg() %>%
+  set_engine("lm")
+
+games_play_recipe <- recipe(average_rating ~ playing_time, data = train_data) %>%
+  step_log(all_predictors())
+
+games_play_workflow <- workflow() %>%
+  add_model(games_lm_mod) %>%
+  add_recipe(games_play_recipe)
+
+games_play_fit <- games_play_workflow %>% 
+  fit(data = train_data)
+
+games_play_all_recipe <- recipe(
+  average_rating ~ playing_time + min_playtime,
+  data = train_data
+  ) %>%
+  step_log(all_predictors())
+
+games_play_all_workflow <- workflow() %>%
+  add_model(games_lm_mod) %>%
+  add_recipe(games_play_all_recipe)
+
+games_play_all_fit <- games_play_all_workflow %>%
+  fit(data = train_data)
+
+games_play_pred <- predict(games_play_fit, test_data) %>%
+  bind_cols(test_data)
+
+games_play_all_pred <- predict(games_play_all_fit, test_data) %>%
+  bind_cols(test_data)
+
+predict_both <- games_play_all_pred %>%
+  mutate(.pred_all = .pred, .keep = "unused") %>%
+  right_join(games_play_pred) %>%
+  dplyr::select(.pred, .pred_all, average_rating, everything())
+
+set.seed(450)
+
+folds <- vfold_cv(train_data, v = 5)
+
+set.seed(451)
+
+games_play_fit_rs <- games_play_workflow %>%
+  fit_resamples(folds)
+
+games_play_all_fit_rs <- games_play_all_workflow %>%
+  fit_resamples(folds)
+```
+
+```{r avge_rating-dist-models, include = FALSE}
+my_data <- board_games_splitcats$average_rating
+
+fitd <- function(data, distr) {
+  fitteddist <- fitdist(data, distr)
+  
+  print(summary(fitteddist))
+  
+  return(fitteddist)
+}
+
+fit_n  <- fitd(my_data, "norm")
+```
+
+```{r normal, echo = FALSE}
+display_normal <- function(mean, sd) {
+  paste0(
+    "$$Y\\sim N(",
+    round(mean, 3),
+    ",",
+    round(sd, 3),
+    "^2)",
+    ".$$"
+  )
+}
+```
+
+```{r model-with-all, include = FALSE}
+set.seed(314159)
+bg_split <- initial_split(board_games_popcats, prop = 0.8)
+train_data <- training(bg_split)
+test_data <- testing(bg_split)
+
+
+bg_rec <- recipe(
+  average_rating ~ users_rated + category + year_published + playing_time,
+  data = train_data
+) %>% 
+  step_log(users_rated)
+
+bg_model <- linear_reg() %>% 
+  set_engine("lm")
+
+bg_wflow <- workflow() %>% 
+  add_model(bg_model) %>% 
+  add_recipe(bg_rec)
+
+bg_fit <- bg_wflow %>%
+  fit(data = train_data)
+
+bg_fit_tidy <- tidy(bg_fit)
+
+# Evaluation
+set.seed(314159)
+folds <- vfold_cv(train_data, v = 5)
+
+bg_fit_vfold <- bg_wflow %>% 
+  fit_resamples(folds)
+
+# Metrics for model fitted to v-fold train data: 
+bg_train_metrics <- collect_metrics(bg_fit_vfold)
+
+# predictions and metrics for test data
+bg_nrate_pred <- predict(bg_fit, test_data) %>% 
+  bind_cols(
+    predict(bg_fit, test_data, type = "pred_int"),
+    test_data %>% dplyr::select(average_rating, users_rated, name)
+  )
+
+bg_test_rmse <- rmse(bg_nrate_pred, truth = average_rating, estimate = .pred)
+bg_test_rsq <- rsq(bg_nrate_pred, truth = average_rating, estimate = .pred)
+
+bg_train_adj_rsq <- glance(bg_fit %>% pull_workflow_fit)$adj.r.squared[1]
+
+# tibble of metrics for both train and test data
+bg_train_test_metrics <- tribble(
+  ~data, ~metric, ~value,
+  "train", "rmse", bg_train_metrics$mean[1],
+  "train", "rsq", bg_train_metrics$mean[2],
+  "test", "rmse", bg_test_rmse$.estimate[1],
+  "test", "rsq", bg_test_rsq$.estimate[1],
+  "train", "adj rsq", bg_train_adj_rsq
+) %>% 
+  pivot_wider(names_from = data, values_from = value)
+```
+
+
+We explore how different variables (category, average and minimum playing time, year publishe, and number of ratings) affect the average rating of a board game on BoardGameGeek.com. In particular, we attempt to predict the average rating of a board game from these variables. 
+
+The dataset we use contains `r ncol(board_games)` properties, such as the variables listed above, on `r nrow(board_games)` board games. We sourced the data from [TidyTuesday](https://github.com/rfordatascience/tidytuesday/tree/master/data/2019/2019-03-12), though they originally come from [Board Game Geek](http://boardgamegeek.com/). For more information about the data, see [our data page](https://github.com/ids-s1-20/project-too_legit_to_overfit/blob/main/data/README.md). 
+
+For our analyses, we use R to explore and manipulate the data, in particular using `tidyverse` for manipulation, and `tidymodels` for modelling. We use v-fold cross-validation to obtain Root Mean Square Error (RMSE) and (adjusted) $R ^ 2$ values with which we can accurately compare models. 
+
+Looking first at game categories, we opted to use only the top 6 most frequent categories, as there are `r ncats` categories overall, and it would be impractical to compare all of them at once. Furthermore, the top 6 categories — `r glue_collapse(popular_categories, ", ", last = ", and ")` — cover `r round(100 * n_distinct(board_games_popcats$game_id)/nrow(board_games))`% of our data, which still leaves `r n_distinct(board_games_popcats$game_id)` games. 
+
+```{r top-cats-over-time-plot, echo = FALSE, message = FALSE, warning = FALSE}
+cat_ratings %>% 
+  pivot_longer(cols = 2:ncol(cat_ratings), names_to = "category", values_to = "av_rating") %>% 
+  ggplot(aes(x = year_published, y = av_rating, colour = category)) + 
+  geom_line() +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_wrap(~ category) +
+  labs(
+    x = "Year published", 
+    y = "Mean annual category rating", 
+    colour = "Category",
+    title = "Average ratings plotted over year published",
+    subtitle = "Faceted by the 6 most popular categories"
+  ) + 
+  theme_minimal()
+```
+
+Despite for each category there being a lot of fluctuation in the average ratings of games published over the years, the linear models fitted to each plot all have a positive slope. This implies that there is a positive correlation present in these categories between their average rating and year published. The residuals for each category in this model are randomly distributed around zero, supporting the appropriateness of fitting a linear model. 
+
+Looking at the results for this model, card games are rated on average the lowest out of these six categories, taking an average rating of `r round(tidy(cat_fit)$estimate[1], 2)` out of 10. However, even wargames, which have the greatest average difference from card games in average ratings, has only an average rating of `r round(tidy(cat_fit)$estimate[1] + tidy(cat_fit)$estimate[6], 2)`. This suggests that category has minimal effect on the rating of the game. 
+
+We look now at the year in which the game was published. Apart from a few particulary low spikes in the 1950s and '60s where there were a few outliers due to very few games being released in that year, we can see that on average, there is an upwards trend in the ratings of games, which suggests that newer games tend to be better rated by the Board Game Geek community. However, as we can see from the low $R^2$ value of `r round(glance(year_published_rating_fit)$r.squared[1], 3)`, the model does not well explain the variance in average rating. 
+
+Following on with investigating the effect of playing time on average rating, a scatter plot of average rating against average playing time (see our [slides](https://github.com/ids-s1-20/project-too_legit_to_overfit/blob/main/presentation/presentation.html) or [video](https://media.ed.ac.uk/media/IDS+Project+Presentation+-+too+legit+to+overfit/1_040ko2d8)) reveals a slight positive correlation between the two. To investigate this further, we construct two linear regression models: one with average playing time, and one with both average and minimum playing time. The drastic difference in slopes of average playing time between the former model ($`r round(tidy(games_play_fit)$estimate[2], 3)`$), and the latter ($`r round(tidy(games_play_all_fit)$estimate[2], 3)`$, with minimum playing time having a slope of $`r round(tidy(games_play_all_fit)$estimate[3], 3)`$) is a sign of collinearity between playing time and minimum playing time, which is obviously bad for a linear regression model. From the slopes of the double variable model, we can see that given the same average playing time, games with shorter minimum playing times tend to have higher ratings on average. 
+
+In both models, the RMSEs are relatively high (single variable model has training data $RMSE = `r round(rmse(games_play_pred, average_rating, .pred)$.estimate[1], 3)`$, test data $RMSE = `r round(collect_metrics(games_play_fit_rs)$mean[1], 3)`$; double variable model has training data $RMSE = `r round(rmse(games_play_all_pred, average_rating, .pred)$.estimate[1], 3)`$,
+test data $RMSE = `r round(collect_metrics(games_play_all_fit_rs)$mean[1], 3)`$.) in respect to the range of average ratings. Most of the data is distributed between an average rating of 2.5 and 8, which means the standard error is around 15%, which is quite bad. 
+
+The adjusted $R^2$ values for both models are fairly low (single variable model: `r paste0("$R^2=",round(glance(games_play_fit %>% pull_workflow_fit())$r.squared[1], 3), "$")`, `r paste0("$R^2=",round(glance(games_play_all_fit %>% pull_workflow_fit())$r.squared[1], 3), "$")`). However, relative to models with the other variables, the adjusted $R^2$ is high, meaning that there may be more of a relationship between average rating and playing time compared to  the other variables explored. 
+
+Now we look at number of ratings. In this dataset, games with few ratings have a large variation in average rating, but this variation quickly reduces as number of ratings increases. This variation in average rating for games with fewer ratings could be because smaller sample sizes mean our sample average ratings are less reliable predictions of the true average ratings one would get were everyone to rate the games. 
+
+Interestingly, aside from slight negative skew (because ratings fall only between 0 and 10), the distribution of average ratings is very close to a normal distribution of `r display_normal(fit_n$estimate[1], fit_n$estimate[2])` It would be interesting to model how the distribution of average rating varied across number of ratings, though this was not something we were able to do. 
+
+However, in fitting a linear regression model, it is evident that there is a slight positive correlation between the average rating and the logarithm of the number of ratings. So, more widely rated games tend to be of better quality with the exception of the top rated games, which do have fewer ratings. This latter point may be because either top rated games are newer (indeed all but 2 were published in the last 5 years, with the remaining 2 being published in 2010 and 2014), very expensive (as in the case of Small World Designer Edition, costing in the thousands of US dollars), or are more complicated games played by fewer in general. Thus when buying a game, more ratings does not necessarily mean it's a better game. We suggested above that new games tended to be rated better on average. We could explore the relationship with price and complexity given data these variables.
+
+Again, it is worth noting that the linear regression model with number of ratings isn't great. This is partly due to non-constant variance of average rating across number of ratings. It is also because one should not expect to be able to accurately predict the average rating of a game from only the number of ratings it has received. The success of a game depends on many factors, including  many we do not look it such as game mechanics, game design, and of course the people who play. 
+
+Before wrapping up, we would like to discuss the following plot.
+
+```{r popular-categories-year-published, echo = FALSE, message = FALSE}
+board_games_empty <- board_games_splitcats %>%
+  filter(FALSE)
+board_games_popcats <- board_games_empty
+
+for (c in popular_categories) {
+  board_games_popcats <- full_join(
+    board_games_popcats,
+    board_games_splitcats %>%
+      filter(map_lgl(categories, ~c %in% .x)) %>%
+      mutate(category = c)
+  )
+}
+
+board_games_popcats %>%
+  group_by(category, year_published) %>%
+  summarise(count = n()) %>%
+  ggplot(aes(
+    x = year_published,
+    y = count,
+    color = category
+  )) +
+  geom_line() +
+  theme_minimal() +
+  labs(
+    x = "Year Published",
+    y = "Number of Games",
+    color = "Category"
+  )
+```
+
+Though this does not relate to average rating, we think it is interesting enough to share. We can see that in 1970, wargames took off quite drastically probably due to the rise of companies like Avalon Hill, and stayed dominant for a few decades until about 1990, when card games shot up, which may or may not be due to the rise of the internet, and people being able to design, print, and publish their own card games much more cheaply and easily. 
+
+To conclude, we look model all the variables in one linear regression model. Other than being a wargame (which now, all else held constant, results in an average rating of `r round(bg_fit_tidy$estimate[7], 3)` higher than card games — yes, this is significantly higher than in the single variable model with categories), each variable we looked at contributes to an increase in the average rating by less than a half (per unit increase in that variable). However, the RMSE of the model is large (`r bg_train_test_metrics$test[1]` for testing data) and the $R^2$ value low (`r bg_train_test_metrics$test[2]` for testing data), so it is not a particularly accurate model. None of these variables are accurate predictors of the average rating of a boardgame. As mentioned before, this is to be expected because there is much more to a game than merely its genre, playing time, etc. 
+
+Moral of the story:
+
+#### Step 1: Make good games
+#### Step 2: ???
+#### Step 3: Profit. 
 
 ## Presentation
 
-Our presentation can be found [here](presentation/presentation.html).
+Our presentation slides can be found [here](https://github.com/ids-s1-20/project-too_legit_to_overfit/blob/main/presentation/presentation.html) and our presentation video [here](https://media.ed.ac.uk/media/IDS+Project+Presentation+-+too+legit+to+overfit/1_040ko2d8)
 
 ## References 
 
-Board Game Geek 2019, Board Games Database, electronic dataset, Tidy Tuesdays, viewed 23 October 2020, \<https://github.com/rfordatascience/tidytuesday/tree/master/data/2019/2019-03-12>.
+### Data
+
+Board Game Geek 2019, _Board Games Database_, electronic dataset, Tidy Tuesdays, viewed 23 October 2020, <https://github.com/rfordatascience/tidytuesday/tree/master/data/2019/2019-03-12>.
+
+### Code
+
+Jeto N 2015, _Fitting Distributions_, University of Lisbon, viewed 22 Nov 2020, <http://www.di.fc.ul.pt/~jpn/r/distributions/fitting.html>
+
+Sauer S 2017, _Simple way of plotting normal/logistic/etc. curve_, sebastiansauer.github.io, viewed 22 Nov 2020, <https://sebastiansauer.github.io/plotting_s-curve/>
