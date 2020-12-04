@@ -338,7 +338,7 @@ Moral of the story:
 
 ## Presentation
 
-Our presentation slides can be found [here](https://github.com/ids-s1-20/project-too_legit_to_overfit/blob/main/presentation/presentation.html) and our presentation video [here](https://media.ed.ac.uk/media/IDS+Project+Presentation+-+too+legit+to+overfit/1_040ko2d8)
+Our presentation slides can be found [here](presentation/presentation.html) and our presentation video [here](https://media.ed.ac.uk/media/IDS+Project+Presentation+-+too+legit+to+overfit/1_040ko2d8)
 
 ## References 
 
