@@ -93,6 +93,7 @@ cat_fit_aug <- augment(cat_fit$fit)
 ``` {r calc-stats, include = FALSE}
 ncats <- board_games_splitcats %>% pull(categories) %>% unlist() %>% as_tibble() %>% filter(!is.na(value)) %>% n_distinct()
 ```
+
 ```{r year-published-rating-fit, include = FALSE}
 year_published_rating_fit <- linear_reg() %>%
   set_engine("lm") %>%
