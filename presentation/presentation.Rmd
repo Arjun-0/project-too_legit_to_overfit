@@ -355,7 +355,7 @@ board_games_splitcats %>%
 
 ---
 
-```{r avge_rating-dist-models, include = FALSE}
+```{r av-rating-dist-models, include = FALSE}
 my_data <- board_games_splitcats$average_rating
 
 fitd <- function(data, distr) {
