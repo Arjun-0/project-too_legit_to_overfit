@@ -130,6 +130,14 @@ board_games_splitcats %>%
 ### Modelling average\_rating from users\_rated
 
 ``` r
+# quantile_5 <- quantile(board_games_splitcats$users_rated, 0.05)
+# 
+# quantile_95 <- quantile(board_games_splitcats$users_rated, 0.95)
+# 
+# 
+# board_games_splitcats <- board_games_splitcats %>% 
+#   filter(users_rated > quantile_5, users_rated < quartile_95)
+
 set.seed(314159)
 bg_nrate_split <- initial_split(board_games_splitcats, prop = 0.8)
 train_data <- training(bg_nrate_split)
@@ -221,6 +229,16 @@ predict(bg_nrate_fit, board_games_splitcats) %>%
 ```
 
 ![](users_rated_files/figure-gfm/av-n-rating-model-1.png)<!-- -->
+
+``` r
+train_test_metrics
+```
+
+    ## # A tibble: 2 x 3
+    ##   metric train  test
+    ##   <chr>  <dbl> <dbl>
+    ## 1 rmse   0.791 0.830
+    ## 2 rsq    0.120 0.108
 
 ``` r
 set.seed(314159)
@@ -867,6 +885,45 @@ probability distribution of average\_rating
 #### Relationship between `averege_rating` and `users_rated`
 
   - average ratings vs number of ratings graph
+
+##### av rating vs users\_rated plot
+
+Now we look at number of ratings. Note the logarithmic scale on number
+of ratings, and that each point represents a single boardgame. In this
+dataset, games with low numbers of ratings have a large variation in
+average rating, but this variation quickly reduces for number of ratings
+in the hundreds, with average rating converges around 7.5.
+
+This variation in average rating for games with fewer ratings could be
+because smaller sample sizes mean our sample average ratings are less
+reliable predictions of the true average ratings one would get were
+everyone to rate the games.
+
+\#\#\#\#\#Normal distr plot Interestingly, aside from the skew, the
+distribution of average ratings is very close to a normal distribution.
+It would be interesting to model how the distribution of average rating
+varied across number of ratings.
+
+\#\#\#\#\#Regression model plot We weren’t able to do this, but fitting
+a regression model, a slight positive correlation between log(number of
+ratings) and average rating is evident. So more widely rated games tend
+to be of better quality. The exception to this are the top rated games,
+which have very few numbers of ratings.
+
+##### top games list
+
+This may be because either these games are newer, very expensive (as in
+the case of small world designer edition), or are more complicated and
+specialist games played by a smaller group of people. Given data on
+price and complexity of each game, we could explore this further.
+
+##### model stats
+
+However, it is a poor model, partly due to the non-constant variance of
+average ratings. \[limitations of predicting average rating from these
+variables anyway\]
+
+#### Relationship
 
 For low numbers of ratings, there is very high variation in average
 ratings, however as the number of ratings increases, the variation
