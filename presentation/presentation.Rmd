@@ -611,8 +611,8 @@ bg_pred <- predict(bg_fit, test_data) %>%
     test_data %>% dplyr::select(average_rating, users_rated, name)
   )
 
-bg_test_rmse <- rmse(bg_nrate_pred, truth = average_rating, estimate = .pred)
-bg_test_rsq <- rsq(bg_nrate_pred, truth = average_rating, estimate = .pred)
+bg_test_rmse <- rmse(bg_pred, truth = average_rating, estimate = .pred)
+bg_test_rsq <- rsq(bg_pred, truth = average_rating, estimate = .pred)
 
 bg_train_adj_rsq <- glance(bg_fit %>% pull_workflow_fit)$adj.r.squared[1]
 
