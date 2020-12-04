@@ -92,7 +92,7 @@ board_games_topcats <- board_games_splitcats %>%
   filter(map_lgl(categories, ~any(popular_categories %in% .x)))
 ```
 
-```{r top-cats-over-time, message = FALSE, warning = FALSE, echo = FALSE}
+```{r top-cats-over-time, echo = FALSE, message = FALSE, warning = FALSE}
 av_annual_rating <- function(df, cat = NULL) {
   {if(!is.null(cat)) {
     df %>% filter(map_lgl(categories, ~cat %in% .x))
@@ -115,7 +115,7 @@ if(any(is.na(popular_categories))) {
 names(cat_ratings) <- c("year_published", popular_categories)
 ```
 
-```{r top-cats-over-time-plot, warning = FALSE, echo = FALSE, message = FALSE}
+```{r top-cats-over-time-plot, echo = FALSE, message = FALSE, warning = FALSE}
 cat_ratings %>% 
   pivot_longer(cols = 2:ncol(cat_ratings), names_to = "category", values_to = "av_rating") %>% 
   ggplot(aes(x = year_published, y = av_rating, colour = category)) + 
@@ -223,7 +223,7 @@ $`r display_r_squared(year_published_rating_fit)`$
 
 ## Playing time
 
-```{r first-plot, echo = FALSE, message = FALSE, warning = FALSE}
+```{r playing-time-plot, echo = FALSE, message = FALSE, warning = FALSE}
 board_games %>%
   filter(playing_time != 0) %>%
   ggplot(aes(playing_time, average_rating)) +
@@ -234,7 +234,7 @@ board_games %>%
   labs(title = "Average rating against average playing time", x = "Average playing time", y = "Average Rating") 
 ```
 
-```{r archie-set-up, echo = FALSE, include = FALSE}
+```{r playing-time-model, include = FALSE}
 board_games <- board_games %>%
   filter(playing_time != 0, min_playtime != 0)
 
@@ -296,7 +296,7 @@ games_play_all_fit_rs <- games_play_all_workflow %>%
 
 ---
 
-```{r model-graph, echo = FALSE}
+```{r playing-time-model-graph, echo = FALSE}
 games_play_pred %>%
   ggplot(aes(x = playing_time)) +
   geom_point(aes(y = average_rating)) +
@@ -520,17 +520,17 @@ train_test_metrics %>%
 ## Interesting observations
 
 ```{r popular-categories-year-published, echo = FALSE, message = FALSE}
-board_games_splitcats <- board_games %>% 
-  mutate(categories = str_split(category, ","))
-
-popular_categories <- board_games_splitcats %>%
-  pull(categories) %>%
-  unlist %>%
-  as_tibble %>%
-  count(value) %>%
-  arrange(desc(n)) %>%
-  head(6) %>%
-  pull(value)
+# board_games_splitcats <- board_games %>% 
+#   mutate(categories = str_split(category, ","))
+# 
+# popular_categories <- board_games_splitcats %>%
+#   pull(categories) %>%
+#   unlist %>%
+#   as_tibble %>%
+#   count(value) %>%
+#   arrange(desc(n)) %>%
+#   head(6) %>%
+#   pull(value)
 
 board_games_empty <- board_games_splitcats %>%
   filter(FALSE)
