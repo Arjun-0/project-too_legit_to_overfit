@@ -6,7 +6,7 @@ Too Legit to Overfit
 
 Each row in the dataset represents a board game on Board Game Geeks;
 each column represents a property of the game. The dimensions of the
-dataset are 10,532 x 22.
+dataset are 10 532 x 22.
 
   - `game_id` - Unique game identifier
   - `description` - A paragraph of text describing the game
@@ -22,14 +22,14 @@ dataset are 10,532 x 22.
   - `year_published` - Year game was published
   - `artist` - Artist for game art
   - `category` - Categories for the game (separated by commas)
-  - `compilation` - If part of a multi-compilation - name of compilation
+  - `compilation` - If part of a multi-compilation — name of compilation
   - `designer` - Game designer
-  - `expansion` - If there is an expansion pack - name of expansion
-  - `family` - Family of game - equivalent to a publisher
-  - `mechanic` - Game mechanic - how game is played, separated by comma
+  - `expansion` - If there is an expansion pack — name of expansion
+  - `family` - Family of game — equivalent to a publisher
+  - `mechanic` - Game mechanic — how game is played, separated by comma
   - `publisher` - Company/person who published the game, separated by
     comma
-  - `average_rating` - Average rating on Board Games Geek (1-10)
+  - `average_rating` - Average rating on Board Games Geek (1–10)
   - `users_rated` - Number of users that rated the game
 
 <!-- end list -->
